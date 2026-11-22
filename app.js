@@ -1,4 +1,7 @@
 (function () {
+  const STORAGE_KEY = "FBRH_WORKBENCH_V2_STATE";
+  const SOURCE_GITHUB_REPO = { owner: "longtr99", repo: "research-workflow" };
+
   const PRESETS = {
     research: [
       {
@@ -123,65 +126,155 @@
         method: "Rule-based scoring kết hợp anomaly threshold tuning và đánh giá chi phí/hiệu quả vận hành (Precision/Recall)",
         query: '("transaction monitoring" OR "fraud detection" OR "operational risk") AND ("banking" OR "anomaly" OR "risk controls")'
       }
-    ]
+    ],
+    qtkd30: [
+      "Tác động của năng lực AI (AI Competence) đến khả năng có việc làm của sinh viên Việt Nam.",
+      "Các yếu tố ảnh hưởng đến mức độ sẵn sàng ứng dụng AI trong doanh nghiệp nhỏ và vừa tại Việt Nam.",
+      "Ảnh hưởng của AI tạo sinh (Generative AI) đến năng suất làm việc của nhân viên văn phòng.",
+      "Vai trò của AI trong nâng cao năng lực đổi mới sáng tạo của doanh nghiệp.",
+      "Tác động của AI đến ý định khởi nghiệp của sinh viên Việt Nam.",
+      "Ảnh hưởng của AI Anxiety đến quyết định lựa chọn nghề nghiệp của sinh viên.",
+      "Các yếu tố ảnh hưởng đến niềm tin của người tiêu dùng đối với AI trong hoạt động kinh doanh.",
+      "Tác động của AI Marketing đến trải nghiệm và lòng trung thành của khách hàng.",
+      "Vai trò của Agentic AI trong chuyển đổi mô hình kinh doanh của doanh nghiệp.",
+      "Các yếu tố ảnh hưởng đến mức độ chấp nhận trợ lý AI trong môi trường làm việc.",
+      "Tác động của chuyển đổi số đến hiệu quả hoạt động của doanh nghiệp Việt Nam.",
+      "Vai trò của năng lực số (Digital Capability) đối với lợi thế cạnh tranh của doanh nghiệp.",
+      "Ảnh hưởng của chuyển đổi số đến hiệu quả quản trị doanh nghiệp nhỏ và vừa.",
+      "Tác động của chuyển đổi số kết hợp chuyển đổi xanh (Twin Transition) đến hiệu quả kinh doanh.",
+      "Các yếu tố ảnh hưởng đến thành công của quá trình chuyển đổi số trong doanh nghiệp.",
+      "Vai trò của ESG trong nâng cao hiệu quả hoạt động của doanh nghiệp Việt Nam.",
+      "Các yếu tố ảnh hưởng đến hành vi tiêu dùng xanh của thế hệ Gen Z.",
+      "Tác động của đổi mới sáng tạo xanh (Green Innovation) đến năng lực cạnh tranh của doanh nghiệp.",
+      "Vai trò của kinh tế tuần hoàn trong phát triển bền vững của doanh nghiệp.",
+      "Ảnh hưởng của trách nhiệm xã hội doanh nghiệp (CSR) đến giá trị thương hiệu.",
+      "Các yếu tố ảnh hưởng đến ý định khởi nghiệp bền vững của sinh viên.",
+      "Vai trò của năng lực đổi mới sáng tạo trong thúc đẩy ý định khởi nghiệp.",
+      "Tác động của hệ sinh thái khởi nghiệp đại học đến hành vi khởi nghiệp của sinh viên.",
+      "Ảnh hưởng của khả năng chống chịu khởi nghiệp (Entrepreneurial Resilience) đến ý định tiếp tục khởi nghiệp.",
+      "Tác động của Creator Economy đến hành vi tiêu dùng của giới trẻ Việt Nam.",
+      "Ảnh hưởng của AI-generated Influencer đến quyết định mua hàng trực tuyến.",
+      "Các yếu tố ảnh hưởng đến hành vi mua sắm trên nền tảng Social Commerce.",
+      "Vai trò của cá nhân hóa bằng AI trong nâng cao trải nghiệm khách hàng.",
+      "Tác động của Gig Economy đến lựa chọn nghề nghiệp của sinh viên Việt Nam.",
+      "Các yếu tố ảnh hưởng đến khả năng thích ứng nghề nghiệp của sinh viên trong bối cảnh nền kinh tế AI."
+    ].map((t, i) => ({
+      id: `qtkd-${i + 1}`,
+      title: `${i + 1}. ${t}`,
+      topic: t,
+      rq: `Các nhân tố/cơ chế nào chi phối mạnh nhất đến trọng tâm của chủ đề "${t}" và tác động thực tiễn ra sao?`,
+      context: "Doanh nghiệp, tổ chức hoặc sinh viên/người dùng tại Việt Nam; dữ liệu khảo sát Likert/SEM hoặc dữ liệu thứ cấp.",
+      variables: "Y: Kết quả/Hành vi/Hiệu quả đầu ra | X: Nhân tố/Năng lực/Công nghệ/Chính sách | Mod/Med: Nhận thức, Môi trường, Quy mô",
+      method: "Cronbach's Alpha, EFA, CFA, SEM / PLS-SEM hoặc Panel Regression / GMM",
+      query: `"${t.split("(")[0].trim()}" AND ("Vietnam" OR "empirical" OR "SEM" OR "performance")`
+    }))
   };
 
-  const STEPS_20 = [
-    "Xác định rõ định hướng (Nghiên cứu hàn lâm hay Ứng dụng thực tiễn) và phạm vi chuyên ngành Tài chính – Ngân hàng.",
-    "Chọn chủ đề trọng tâm có tính thời sự và khả năng tiếp cận dữ liệu/tài liệu thực tế.",
-    "Rà soát bức tranh tổng quan tài liệu (Literature Review) sơ bộ trên Scopus, Google Scholar hoặc nguồn nghiệp vụ.",
-    "Nhận diện khoảng trống nghiên cứu (Research Gap) hoặc bài toán/điểm nghẽn thực tế cần giải quyết.",
-    "Xác định mục tiêu tổng quát và các mục tiêu cụ thể đo lường được.",
-    "Đặt câu hỏi nghiên cứu (RQ) hoặc câu hỏi bài toán ứng dụng rõ ràng, không mơ hồ.",
-    "Xây dựng khung lý thuyết nền (định hướng Nghiên cứu) hoặc khung tiêu chí/nghiệp vụ (định hướng Ứng dụng).",
-    "Phát triển hệ thống giả thuyết nghiên cứu hoặc giả định mô hình/kịch bản thực hiện.",
-    "Liệt kê đầy đủ biến phụ thuộc, biến độc lập, biến trung gian/điều tiết và biến kiểm soát (hoặc chỉ tiêu/đầu vào/đầu ra).",
-    "Định nghĩa rõ công thức tính, đơn vị đo và nguồn dữ liệu cho từng biến/chỉ tiêu.",
-    "Thiết kế chiến lược thu thập dữ liệu, khung thời gian/mẫu quan sát và quy tắc làm sạch dữ liệu.",
-    "Xử lý giá trị thiếu, ngoại lai, sai lệch đơn vị và kiểm tra tính nhất quán của bộ dữ liệu.",
-    "Lựa chọn phương pháp định lượng/kinh tế lượng hoặc mô hình phân tích/chấm điểm/định giá phù hợp.",
-    "Kiểm định các giả định mô hình, tính nội sinh, độ bền vững (robustness) hoặc kiểm tra kịch bản/độ nhạy.",
-    "Chạy mô hình, trích xuất bảng kết quả, biểu đồ và chỉ số đánh giá chính xác.",
-    "Diễn giải kết quả gắn với lý thuyết kinh tế tài chính hoặc bối cảnh vận hành thực tế.",
-    "Đối chiếu kết quả với các nghiên cứu trước hoặc chuẩn mực/thông lệ ngành.",
-    "Rút ra hàm ý chính sách, hàm ý quản trị hoặc khuyến nghị triển khai cụ thể, khả thi.",
-    "Chỉ ra hạn chế của nghiên cứu/mô hình và hướng phát triển tiếp theo.",
-    "Chuẩn hóa trình bày, bảng biểu, trích dẫn tài liệu và rà soát toàn bộ tính logic trước khi nộp."
+  const DEFAULT_STEPS_20 = [
+    "Xác định rõ định hướng (Nghiên cứu hàn lâm, Ứng dụng thực tiễn hoặc Chủ đề QTKD/AI) và phạm vi chuyên ngành.",
+    "Chọn chủ đề trọng tâm có tính thời sự, khoảng trống/điểm nghẽn thực tế và khả năng tiếp cận dữ liệu.",
+    "Rà soát bức tranh tổng quan tài liệu (Literature Review) sơ bộ qua Scopus, Scholar, ConnectedPapers, PaperDigest và kho LR có sẵn.",
+    "Nhận diện khoảng trống tri thức (Research Gap) hoặc bài toán/điểm nghẽn nghiệp vụ cần giải quyết (tránh suy diễn cảm tính).",
+    "Xác định mục tiêu nghiên cứu, mục đích nghiên cứu, đối tượng nghiên cứu, khách thể nghiên cứu và phạm vi (không gian, thời gian, nội dung, mẫu).",
+    "Đặt câu hỏi nghiên cứu (RQ) hoặc câu hỏi bài toán ứng dụng rõ ràng, đo lường được và gắn trực tiếp với từng mục tiêu.",
+    "Xây dựng khung lý thuyết nền và tổng quan khái niệm theo hướng quy nạp, phản biện, có lập luận chọn khái niệm/quan điểm cuối cùng.",
+    "Phát triển hệ thống giả thuyết nghiên cứu (mô tả, giải thích, giải pháp, dự báo) hoặc giả định mô hình/kịch bản thực hiện.",
+    "Xây dựng khung biến/chỉ tiêu đầy đủ: biến độc lập (X), biến trung gian/điều tiết (Med/Mod), biến phụ thuộc (Y), biến kiểm soát (hoặc chỉ tiêu/đầu vào/đầu ra).",
+    "Định nghĩa rõ công thức tính, thang đo (Likert 5/7, chỉ số tài chính, biến quan sát), đơn vị đo và nguồn dữ liệu cho từng biến/chỉ tiêu.",
+    "Thiết kế công cụ thu thập dữ liệu (bảng hỏi Google Form/khảo sát, phỏng vấn, đối thoại, dữ liệu thứ cấp) và chiến lược chọn mẫu (cỡ mẫu tối thiểu >= 5*biến quan sát hoặc phù hợp mô hình).",
+    "Làm sạch dữ liệu, xử lý giá trị thiếu/ngoại lai, kiểm tra tính nhất quán và phân loại đối tượng hợp lệ.",
+    "Lựa chọn phương pháp/mô hình phân tích (Cronbach's Alpha, EFA, CFA, SEM/PLS-SEM, OLS/Panel FE-RE/System GMM, Logit/Scorecard, DCF/Stress test, hoặc phân tích định tính).",
+    "Kiểm định các giả định mô hình, tính nội sinh, độ bền vững (robustness), kiểm định giả thuyết hoặc chạy kịch bản/độ nhạy.",
+    "Tổng hợp bảng kết quả, biểu đồ, sơ đồ và chỉ số đánh giá; đặt tên bảng phía trên, tên hình/biểu đồ phía dưới và trích nguồn chuẩn.",
+    "Diễn giải kết quả bằng văn phong khoa học khách quan (ưu tiên câu bị động, luận điểm–luận cứ–luận chứng, tránh tính từ áp đặt hoặc văn nói).",
+    "Đối chiếu kết quả với các nghiên cứu trước, lý thuyết nền và thông lệ/chuẩn mực ngành (chỉ ra điểm đồng thuận, khác biệt và bằng chứng phản biện).",
+    "Rút ra hàm ý lý luận, hàm ý quản trị/chính sách hoặc giải pháp/khuyến nghị cụ thể, khả thi (nêu rõ nội dung, cách thức, điều kiện thực hiện và đối tượng tiếp nhận).",
+    "Chỉ ra hạn chế của nghiên cứu/mô hình (dữ liệu, phạm vi, biến số, phương pháp) và đề xuất hướng nghiên cứu tiếp theo.",
+    "Chuẩn hóa Word (A4, lề 2-2-3-1.5, Time New Roman 14, giãn dòng, tắt tự động bullet/numbering), mục lục tự động, trích dẫn APA/IEEE/Footnote và kiểm soát tỷ lệ trùng lặp/AI trước khi nộp."
   ];
 
   const state = {
     orientation: "research",
     activeTab: "library",
+    selectedPresetId: "",
     topic: "",
     rq: "",
     context: "",
-    matrixRows: [
-      {
-        author: "Tác giả A (2023)",
-        goal: "Đánh giá tác động của yếu tố tài chính/quản trị đến rủi ro hoặc hiệu quả",
-        vars: "Y: ROA / NPL | X: biến độc lập chính | Controls: quy mô, đòn bẩy",
-        method: "Panel FE / System GMM",
-        finding: "Có tác động đáng kể; khoảng trống: chưa kiểm định cơ chế trung gian hoặc giai đoạn hậu 2022."
-      },
-      {
-        author: "Tác giả B (2024)",
-        goal: "Phân tích mô hình dự báo / chấm điểm / tối ưu danh mục trong TCNH",
-        vars: "Chỉ tiêu thanh khoản, đòn bẩy, rủi ro tín dụng/thị trường",
-        method: "Logit / Stress test / Tối ưu danh mục",
-        finding: "Độ chính xác cải thiện; cần kiểm chứng thêm trên dữ liệu/bối cảnh Việt Nam."
-      }
-    ]
+    customInputText: "",
+    steps20: [...DEFAULT_STEPS_20],
+    stepOutputs: {},
+    matrixRows: [],
+    lrSearch: "",
+    githubStatus: "Chưa đồng bộ trực tiếp"
   };
+
+  function getBuiltinLr() {
+    if (Array.isArray(window.BUILTIN_LR_DATA) && window.BUILTIN_LR_DATA.length > 0) {
+      return window.BUILTIN_LR_DATA.map((d) => ({
+        author: d.a || "",
+        goal: `${d.g || ""}${d.s ? " [" + d.s + "]" : ""}`,
+        vars: d.v || "",
+        method: d.m || "",
+        finding: d.f || "",
+        source: d.s || "Tệp tích hợp"
+      }));
+    }
+    return [
+      {
+        author: "Gagné, M.; Deci, E. L. (2005)",
+        goal: "Self-determination theory and work motivation [Q1]",
+        vars: "SDT; autonomous motivation; controlled motivation; basic psychological needs",
+        method: "Theoretical review / SDT framework",
+        finding: "Thỏa mãn tự chủ, năng lực và gắn kết thúc đẩy động lực tự chủ và hiệu suất bền vững.",
+        source: "Mặc định"
+      }
+    ];
+  }
+
+  function loadSavedState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        Object.assign(state, parsed);
+        if (!Array.isArray(state.steps20) || state.steps20.length !== 20) {
+          state.steps20 = [...DEFAULT_STEPS_20];
+        }
+        if (!state.stepOutputs || typeof state.stepOutputs !== "object") {
+          state.stepOutputs = {};
+        }
+      }
+    } catch (_) {}
+    if (!Array.isArray(state.matrixRows) || state.matrixRows.length === 0) {
+      state.matrixRows = getBuiltinLr().slice(0, 12);
+    }
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (_) {}
+  }
 
   const els = {
     orientBtns: Array.from(document.querySelectorAll(".orient-btn")),
     tabBtns: Array.from(document.querySelectorAll(".tab-btn")),
     tabPanels: Array.from(document.querySelectorAll(".tab-panel")),
     presetSelect: document.getElementById("presetSelect"),
+    autoRunAllBtn: document.getElementById("autoRunAllBtn"),
+    runAllStepsBtn: document.getElementById("runAllStepsBtn"),
     resetBtn: document.getElementById("resetBtn"),
     topicInput: document.getElementById("topicInput"),
     rqInput: document.getElementById("rqInput"),
     contextInput: document.getElementById("contextInput"),
+    customDataFile: document.getElementById("customDataFile"),
+    customDataTextarea: document.getElementById("customDataTextarea"),
+    applyCustomInputBtn: document.getElementById("applyCustomInputBtn"),
+    autoPipelineOutput: document.getElementById("autoPipelineOutput"),
+    syncGithubBtn: document.getElementById("syncGithubBtn"),
+    syncGithubMatrixBtn: document.getElementById("syncGithubMatrixBtn"),
+    exportProjectBtn: document.getElementById("exportProjectBtn"),
+    syncStatusText: document.getElementById("syncStatusText"),
     libraryTitle: document.getElementById("libraryTitle"),
     libraryDesc: document.getElementById("libraryDesc"),
     orientationPill: document.getElementById("orientationPill"),
@@ -189,6 +282,11 @@
     stepsList: document.getElementById("stepsList"),
     copyAllStepsBtn: document.getElementById("copyAllStepsBtn"),
     promptsList: document.getElementById("promptsList"),
+    lrStatsText: document.getElementById("lrStatsText"),
+    lrSearchInput: document.getElementById("lrSearchInput"),
+    lrCountBadge: document.getElementById("lrCountBadge"),
+    variableFrameworkBox: document.getElementById("variableFrameworkBox"),
+    autoPopulateMatrixBtn: document.getElementById("autoPopulateMatrixBtn"),
     matrixBody: document.getElementById("matrixBody"),
     addRowBtn: document.getElementById("addRowBtn"),
     copyMatrixBtn: document.getElementById("copyMatrixBtn"),
@@ -197,12 +295,12 @@
 
   function showToast(msg) {
     if (!els.toast) return;
-    els.toast.textContent = msg || "Đã copy";
+    els.toast.textContent = msg || "Đã xử lý";
     els.toast.classList.add("show");
     clearTimeout(showToast._timer);
     showToast._timer = setTimeout(() => {
       els.toast.classList.remove("show");
-    }, 1800);
+    }, 2000);
   }
 
   async function copyText(text, label) {
@@ -225,6 +323,21 @@
     }
   }
 
+  function escapeHtml(val) {
+    return String(val || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function escapeAttr(val) {
+    return String(val || "")
+      .replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;");
+  }
+
   function setActiveTab(tabName) {
     state.activeTab = tabName;
     els.tabBtns.forEach((btn) => {
@@ -237,6 +350,345 @@
       panel.classList.toggle("active", isMatch);
       panel.hidden = !isMatch;
     });
+    saveState();
+  }
+
+  function getCurrentPreset() {
+    const list = PRESETS[state.orientation] || [];
+    return list.find((p) => p.id === state.selectedPresetId) || null;
+  }
+
+  function renderVariableFramework() {
+    const preset = getCurrentPreset();
+    const topic = state.topic.trim() || "[Chưa nhập tên đề tài]";
+    const rq = state.rq.trim() || "[Chưa nhập RQ / Mục tiêu]";
+    const ctx = state.context.trim() || "[Chưa nhập bối cảnh / dữ liệu]";
+    const varsText = preset ? preset.variables : "Y: Biến/Chỉ tiêu đầu ra | X: Biến/Nhân tố tác động | Controls: Quy mô, Đòn bẩy, Bối cảnh";
+    const methodText = preset ? preset.method : "Khảo sát / Định lượng (Cronbach's Alpha, EFA, CFA, SEM/PLS-SEM, OLS/Panel/GMM) hoặc Định tính / Mô hình đánh giá";
+
+    const parts = varsText.split("|").map((s) => s.trim());
+    const yVar = parts[0] || "Y: Biến phụ thuộc / Chỉ tiêu mục tiêu";
+    const xVar = parts[1] || "X: Biến độc lập / Yếu tố tác động";
+    const extraVar = parts.slice(2).join(" | ") || "Biến trung gian / Điều tiết / Biến kiểm soát";
+
+    els.variableFrameworkBox.innerHTML = `
+      <div class="item-top">
+        <span class="item-title">Khung biến / Chỉ tiêu tự động — ${escapeHtml(topic)}</span>
+        <button type="button" class="btn-copy" id="copyVarFrameworkBtn">Copy khung biến</button>
+      </div>
+      <div class="muted"><strong>RQ / Trọng tâm:</strong> ${escapeHtml(rq)} | <strong>Bối cảnh:</strong> ${escapeHtml(ctx)}</div>
+      <div class="var-grid">
+        <div class="var-cell"><strong>1. Biến / Chỉ tiêu đầu ra (Y / DV):</strong><br/>${escapeHtml(yVar)}</div>
+        <div class="var-cell"><strong>2. Biến / Nhân tố tác động (X / IV):</strong><br/>${escapeHtml(xVar)}</div>
+        <div class="var-cell"><strong>3. Trung gian / Điều tiết / Kiểm soát:</strong><br/>${escapeHtml(extraVar)}</div>
+        <div class="var-cell"><strong>4. Phương pháp &amp; Thang đo gợi ý:</strong><br/>${escapeHtml(methodText)}</div>
+      </div>
+    `;
+
+    const copyBtn = document.getElementById("copyVarFrameworkBtn");
+    if (copyBtn) {
+      copyBtn.addEventListener("click", () => {
+        const txt =
+          `Đề tài: ${topic}\nRQ: ${rq}\nBối cảnh: ${ctx}\n` +
+          `- Đầu ra (Y): ${yVar}\n- Tác động (X): ${xVar}\n- Trung gian/Điều tiết/Kiểm soát: ${extraVar}\n- Phương pháp: ${methodText}`;
+        copyText(txt, "Khung biến / Chỉ tiêu");
+      });
+    }
+  }
+
+  function autoPopulateMatrixByTopic() {
+    const allBuiltin = getBuiltinLr();
+    const keywords = `${state.topic} ${state.rq} ${state.context}`
+      .toLowerCase()
+      .split(/[\s,;:|/()\-–—]+/)
+      .filter((w) => w.length >= 3);
+
+    const scored = allBuiltin.map((item) => {
+      const hay = `${item.author} ${item.goal} ${item.vars} ${item.method} ${item.finding}`.toLowerCase();
+      let score = 0;
+      keywords.forEach((kw) => {
+        if (hay.includes(kw)) score += 1;
+      });
+      return { item, score };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+    const matched = scored.filter((x) => x.score > 0).slice(0, 15).map((x) => x.item);
+    const selected = matched.length >= 5 ? matched : allBuiltin.slice(0, 12);
+
+    state.matrixRows = selected.map((r) => ({
+      author: r.author,
+      goal: r.goal,
+      vars: r.vars,
+      method: r.method,
+      finding: r.finding
+    }));
+
+    saveState();
+    renderMatrix();
+    renderVariableFramework();
+    showToast(`Đã tự động nhảy ${state.matrixRows.length} công trình vào LR Matrix`);
+  }
+
+  function parseCsvSimple(csvText) {
+    const lines = String(csvText || "").split(/\r?\n/).filter((l) => l.trim());
+    if (lines.length < 2) return [];
+    const splitLine = (line) => {
+      const out = [];
+      let cur = "";
+      let inQ = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          inQ = !inQ;
+        } else if (ch === "," && !inQ) {
+          out.push(cur.trim());
+          cur = "";
+        } else {
+          cur += ch;
+        }
+      }
+      out.push(cur.trim());
+      return out;
+    };
+    const headers = splitLine(lines[0]);
+    return lines.slice(1).map((l) => {
+      const cells = splitLine(l);
+      const obj = {};
+      headers.forEach((h, i) => {
+        obj[h] = cells[i] || "";
+      });
+      return obj;
+    });
+  }
+
+  function handleCustomFileUpload(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    const isBinaryExcel = /\.(xlsx|xls)$/i.test(file.name);
+
+    reader.onload = (e) => {
+      try {
+        if (isBinaryExcel && window.XLSX) {
+          const wb = window.XLSX.read(e.target.result, { type: "array" });
+          const firstSheet = wb.Sheets[wb.SheetNames[0]];
+          const rows = window.XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+          const newMatrix = rows.slice(0, 60).map((r, i) => {
+            const vals = Object.values(r);
+            return {
+              author: String(r["Tên tác giả"] || r.Authors || r.Author || vals[1] || `File ${file.name} #${i + 1}`),
+              goal: String(r["Tên công trình"] || r.Title || r.Goal || vals[2] || file.name),
+              vars: String(r.Keyword || r.Keywords || r.Variables || r.Vars || vals[4] || ""),
+              method: String(r.Method || r["Phương pháp"] || r.DOI || vals[5] || file.name),
+              finding: String(r["Tóm tắt (150–300 từ)"] || r.Takeaway || r.Finding || vals[6] || Object.values(r).join(" | "))
+            };
+          });
+          if (newMatrix.length > 0) {
+            state.matrixRows = [...newMatrix, ...state.matrixRows];
+          }
+          const summaryText = rows.slice(0, 15).map((r) => JSON.stringify(r)).join("\n");
+          state.customInputText = summaryText;
+          els.customDataTextarea.value = state.customInputText;
+          saveState();
+          renderMatrix();
+          showToast(`Đã nạp ${newMatrix.length} dòng từ ${file.name}`);
+          return;
+        }
+
+        const text = String(e.target.result || "");
+        state.customInputText = text.slice(0, 8000);
+        els.customDataTextarea.value = state.customInputText;
+
+        if (file.name.endsWith(".json")) {
+          const parsed = JSON.parse(text);
+          const arr = Array.isArray(parsed) ? parsed : (parsed.items || parsed.matrixRows || []);
+          if (Array.isArray(arr) && arr.length > 0) {
+            state.matrixRows = arr.map((x) => ({
+              author: x.author || "",
+              goal: x.goal || "",
+              vars: x.vars || "",
+              method: x.method || "",
+              finding: x.finding || ""
+            }));
+          }
+        } else if (file.name.endsWith(".csv")) {
+          const rows = parseCsvSimple(text);
+          if (rows.length > 0) {
+            const mapped = rows.map((r) => ({
+              author: r.Authors || r.Author || r["Tên tác giả"] || file.name,
+              goal: r.Title || r["Tên công trình"] || file.name,
+              vars: r.Keyword || r.Variables || "",
+              method: r.Method || file.name,
+              finding: r.Takeaway || r.Finding || r.Abstract || Object.values(r).join(" | ")
+            }));
+            state.matrixRows = [...mapped, ...state.matrixRows];
+          }
+        }
+
+        saveState();
+        renderMatrix();
+        showToast(`Đã nạp tệp ${file.name}`);
+      } catch (err) {
+        showToast(`Lỗi đọc tệp ${file.name}: ${err.message || err}`);
+      }
+    };
+
+    if (isBinaryExcel) {
+      reader.readAsArrayBuffer(file);
+    } else {
+      reader.readAsText(file, "utf-8");
+    }
+  }
+
+  async function syncFromGithubResearchWorkflow() {
+    els.syncStatusText.textContent = "Đang đồng bộ dữ liệu từ GitHub longtr99/research-workflow vào fbrh...";
+    try {
+      const apiUrl = `https://api.github.com/repos/${SOURCE_GITHUB_REPO.owner}/${SOURCE_GITHUB_REPO.repo}/git/trees/HEAD?recursive=1`;
+      const res = await fetch(apiUrl, { headers: { Accept: "application/vnd.github+json" } });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} (kiểm tra quyền truy cập repo hoặc giới hạn API)`);
+      }
+      const treeData = await res.json();
+      const blobs = (treeData.tree || [])
+        .filter((n) => n.type === "blob" && /\.(json|csv|md|txt|tsv)$/i.test(n.path))
+        .slice(0, 15);
+
+      let importedCount = 0;
+      let notes = [];
+
+      for (const blob of blobs) {
+        const rawUrl = `https://raw.githubusercontent.com/${SOURCE_GITHUB_REPO.owner}/${SOURCE_GITHUB_REPO.repo}/HEAD/${blob.path}`;
+        const fRes = await fetch(rawUrl);
+        if (!fRes.ok) continue;
+        const txt = await fRes.text();
+
+        if (blob.path.toLowerCase().endsWith(".json")) {
+          try {
+            const parsed = JSON.parse(txt);
+            const list = Array.isArray(parsed) ? parsed : (parsed.items || parsed.matrixRows || []);
+            if (Array.isArray(list) && list.length > 0) {
+              const mapped = list.slice(0, 30).map((x) => ({
+                author: x.author || x.Authors || `GitHub: ${blob.path}`,
+                goal: x.goal || x.Title || blob.path,
+                vars: x.vars || x.Keyword || "",
+                method: x.method || x.Method || blob.path,
+                finding: x.finding || x.Takeaway || x.Abstract || ""
+              }));
+              state.matrixRows = [...mapped, ...state.matrixRows];
+              importedCount += mapped.length;
+            }
+          } catch (_) {}
+        } else if (blob.path.toLowerCase().endsWith(".csv")) {
+          const rows = parseCsvSimple(txt);
+          if (rows.length > 0) {
+            const mapped = rows.slice(0, 30).map((r) => ({
+              author: r.Authors || r.Author || r["Tên tác giả"] || `GitHub: ${blob.path}`,
+              goal: r.Title || r["Tên công trình"] || blob.path,
+              vars: r.Keyword || r.Variables || "",
+              method: r.Method || blob.path,
+              finding: r.Takeaway || r.Finding || r.Abstract || Object.values(r).join(" | ")
+            }));
+            state.matrixRows = [...mapped, ...state.matrixRows];
+            importedCount += mapped.length;
+          }
+        } else {
+          notes.push(`[GitHub ${blob.path}]: ${txt.slice(0, 400).replace(/\s+/g, " ")}`);
+        }
+      }
+
+      if (notes.length) {
+        state.customInputText = `${state.customInputText}\n${notes.join("\n")}`.trim();
+        els.customDataTextarea.value = state.customInputText;
+      }
+
+      state.githubStatus = `Đã đồng bộ ${importedCount} dòng & ${notes.length} tài liệu từ research-workflow`;
+      els.syncStatusText.textContent = state.githubStatus;
+      saveState();
+      renderMatrix();
+      renderVariableFramework();
+      renderPrompts();
+      showToast(state.githubStatus);
+    } catch (err) {
+      state.githubStatus = `Chưa đồng bộ trực tiếp (${err.message || "lỗi mạng/repo"}) — Đang dùng kho tích hợp + localStorage`;
+      els.syncStatusText.textContent = state.githubStatus;
+      showToast("Đã dùng kho dữ liệu tích hợp sẵn trên fbrh");
+    }
+  }
+
+  function exportProjectJson() {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      targetRepo: "longtr99/fbrh",
+      orientation: state.orientation,
+      topic: state.topic,
+      rq: state.rq,
+      context: state.context,
+      customInputText: state.customInputText,
+      steps20: state.steps20,
+      stepOutputs: state.stepOutputs,
+      matrixRows: state.matrixRows
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "fbrh-research-project.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast("Đã xuất JSON dự án fbrh");
+  }
+
+  function generateStepOutput(stepIdx) {
+    const stepText = state.steps20[stepIdx] || "";
+    const topic = state.topic.trim() || "[Chưa nhập tên đề tài / chủ đề]";
+    const rq = state.rq.trim() || "[Chưa nhập RQ / Mục tiêu trọng tâm]";
+    const ctx = state.context.trim() || "[Chưa nhập bối cảnh / dữ liệu]";
+    const extraData = state.customInputText.trim() || "Sử dụng dữ liệu nền tảng đã nạp trực tiếp trong Workbench.";
+    const matchedRows = state.matrixRows.slice(0, 5).map((r) => `- ${r.author}: ${r.goal} (${r.method})`).join("\n");
+
+    return (
+      `[Thực thi Bước ${stepIdx + 1}/20 — ${stepText}]\n` +
+      `Chủ đề/Đề tài: ${topic}\n` +
+      `RQ / Mục tiêu: ${rq}\n` +
+      `Bối cảnh & Dữ liệu: ${ctx}\n` +
+      `Dữ liệu nạp thêm:\n${extraData.slice(0, 1200)}\n` +
+      `Tài liệu tham khảo liên quan trong LR Matrix:\n${matchedRows}\n\n` +
+      `Yêu cầu đầu ra:\n` +
+      `1. Phân tích & hoàn thành trực tiếp nội dung của Bước ${stepIdx + 1} cho đề tài trên (phân biệt rõ dữ kiện xác minh, suy luận, giả thuyết, không bịa nguồn/số liệu).\n` +
+      `2. Cung cấp bảng/khung/checklist hoặc ví dụ áp dụng cụ thể để dán ngay vào bản thảo nghiên cứu/báo cáo.`
+    );
+  }
+
+  function runSingleStep(stepIdx) {
+    state.stepOutputs[stepIdx] = generateStepOutput(stepIdx);
+    saveState();
+    renderSteps();
+    showToast(`Đã xử lý Bước ${stepIdx + 1}`);
+  }
+
+  function runAll20Steps() {
+    const outputs = [];
+    for (let i = 0; i < 20; i++) {
+      const out = generateStepOutput(i);
+      state.stepOutputs[i] = out;
+      outputs.push(`=== BƯỚC ${i + 1}: ${state.steps20[i]} ===\n${out}`);
+    }
+    saveState();
+    renderSteps();
+    els.autoPipelineOutput.hidden = false;
+    els.autoPipelineOutput.innerHTML = `
+      <div class="item-top">
+        <span class="item-title">Kết quả chạy tự động toàn bộ 20 bước (Đề tài: ${escapeHtml(state.topic.trim() || "Chưa đặt tên")})</span>
+        <button type="button" class="btn-copy" id="copyAll20OutputsBtn">Copy toàn bộ 20 bước đã chạy</button>
+      </div>
+      <pre class="prompt-pre">${escapeHtml(outputs.join("\n\n"))}</pre>
+    `;
+    const copyBtn = document.getElementById("copyAll20OutputsBtn");
+    if (copyBtn) {
+      copyBtn.addEventListener("click", () => copyText(outputs.join("\n\n"), "Pipeline 20 bước tự động"));
+    }
+    setActiveTab("handbook");
+    showToast("Đã chạy tự động xong toàn bộ 20 bước!");
   }
 
   function setOrientation(orient) {
@@ -247,49 +699,57 @@
     });
 
     const isResearch = orient === "research";
-    els.orientationPill.textContent = isResearch ? "Đang chọn: Nghiên cứu" : "Đang chọn: Ứng dụng";
+    const isApplied = orient === "applied";
+
+    els.orientationPill.textContent = isResearch
+      ? "Đang chọn: Nghiên cứu"
+      : isApplied
+        ? "Đang chọn: Ứng dụng"
+        : "Đang chọn: 30 Chủ đề QTKD & AI";
+
     els.libraryTitle.textContent = isResearch
       ? "Thư viện 6 Hướng nghiên cứu chuyên ngành Tài chính – Ngân hàng (Chọn & Nạp 1 chạm)"
-      : "Thư viện 6 Hướng ứng dụng chuyên ngành Tài chính – Ngân hàng (Chọn & Nạp 1 chạm)";
+      : isApplied
+        ? "Thư viện 6 Hướng ứng dụng chuyên ngành Tài chính – Ngân hàng (Chọn & Nạp 1 chạm)"
+        : "Kho 30 Chủ đề NCKH Lĩnh vực Kinh tế, QTKD & AI (ThS. Đặng Văn Phong)";
+
     els.libraryDesc.textContent = isResearch
       ? "Tập trung khoảng trống nghiên cứu, biến số, mô hình kinh tế lượng, kiểm định giả thuyết và truy vấn Scopus."
-      : "Tập trung bài toán thực tế, bộ chỉ tiêu/mô hình chấm điểm – định giá – quản trị rủi ro và kịch bản triển khai.";
-
-    els.topicInput.placeholder = isResearch
-      ? "Tên đề tài / Mô hình nghiên cứu..."
-      : "Tên bài toán / Mô hình ứng dụng thực tế...";
-    els.rqInput.placeholder = isResearch
-      ? "Câu hỏi nghiên cứu (RQ)..."
-      : "Mục tiêu / Bài toán trọng tâm cần giải quyết...";
-    els.contextInput.placeholder = isResearch
-      ? "Mô tả vấn đề / Bối cảnh / Dữ liệu bảng..."
-      : "Bối cảnh doanh nghiệp/ngân hàng / Dữ liệu đầu vào...";
+      : isApplied
+        ? "Tập trung bài toán thực tế, bộ chỉ tiêu/mô hình chấm điểm – định giá – quản trị rủi ro và kịch bản triển khai."
+        : "Chọn 1 chủ đề trong 30 chủ đề để tự động điền đề tài, RQ, biến số, phương pháp và đồng bộ LR Matrix.";
 
     renderPresetSelect();
     renderPresetGrid();
+    renderVariableFramework();
     renderPrompts();
+    saveState();
   }
 
   function renderPresetSelect() {
     const items = PRESETS[state.orientation] || [];
     els.presetSelect.innerHTML =
-      `<option value="">-- Nạp nhanh (${state.orientation === "research" ? "Nghiên cứu" : "Ứng dụng"}) --</option>` +
-      items.map((p) => `<option value="${p.id}">${p.title}</option>`).join("");
+      `<option value="">-- Nạp nhanh (${els.orientationPill.textContent.replace("Đang chọn: ", "")}) --</option>` +
+      items.map((p) => `<option value="${escapeAttr(p.id)}" ${p.id === state.selectedPresetId ? "selected" : ""}>${escapeHtml(p.title)}</option>`).join("");
   }
 
   function applyPresetById(id) {
     const items = PRESETS[state.orientation] || [];
     const found = items.find((p) => p.id === id);
     if (!found) return;
+    state.selectedPresetId = found.id;
     state.topic = found.topic;
     state.rq = found.rq;
-    state.context = found.context;
+    state.context = `${found.context} | Biến: ${found.variables} | Phương pháp: ${found.method}`;
     els.topicInput.value = state.topic;
     els.rqInput.value = state.rq;
     els.contextInput.value = state.context;
     els.presetSelect.value = found.id;
+    autoPopulateMatrixByTopic();
+    renderVariableFramework();
     renderPrompts();
-    showToast(`Đã nạp: ${found.title}`);
+    saveState();
+    showToast(`Đã nạp & nhảy dữ liệu: ${found.title}`);
   }
 
   function renderPresetGrid() {
@@ -299,17 +759,18 @@
         (p) => `
       <article class="preset-card">
         <div>
-          <h3>${p.title}</h3>
-          <p class="preset-meta"><strong>RQ / Trọng tâm:</strong> ${p.rq}</p>
+          <h3>${escapeHtml(p.title)}</h3>
+          <p class="preset-meta"><strong>Đề tài:</strong> ${escapeHtml(p.topic)}</p>
+          <p class="preset-meta"><strong>RQ / Trọng tâm:</strong> ${escapeHtml(p.rq)}</p>
           <div class="preset-detail">
-            <p><strong>Biến / Chỉ tiêu:</strong> ${p.variables}</p>
-            <p><strong>Phương pháp / Mô hình:</strong> ${p.method}</p>
-            <p><strong>Truy vấn tham khảo:</strong> ${p.query}</p>
+            <p><strong>Biến / Chỉ tiêu:</strong> ${escapeHtml(p.variables)}</p>
+            <p><strong>Phương pháp / Mô hình:</strong> ${escapeHtml(p.method)}</p>
+            <p><strong>Truy vấn tham khảo:</strong> ${escapeHtml(p.query)}</p>
           </div>
         </div>
         <div class="card-actions">
-          <button type="button" class="btn-primary btn-load-preset" data-id="${p.id}">Nạp vào Workbench</button>
-          <button type="button" class="btn-secondary btn-copy-preset" data-id="${p.id}">Copy thông tin</button>
+          <button type="button" class="btn-primary btn-load-preset" data-id="${escapeAttr(p.id)}">Nạp &amp; Chạy tự động</button>
+          <button type="button" class="btn-secondary btn-copy-preset" data-id="${escapeAttr(p.id)}">Copy thông tin</button>
         </div>
       </article>
     `
@@ -318,54 +779,90 @@
   }
 
   function renderSteps() {
-    els.stepsList.innerHTML = STEPS_20.map(
-      (step, idx) => `
-      <div class="item-box">
+    els.stepsList.innerHTML = state.steps20
+      .map((step, idx) => {
+        const out = state.stepOutputs[idx];
+        return `
+      <div class="item-box" data-step-idx="${idx}">
         <div class="item-top">
-          <span class="item-title">Bước ${idx + 1}</span>
-          <button type="button" class="btn-copy btn-copy-step" data-index="${idx}">Copy</button>
+          <span class="item-title">Bước ${idx + 1} / 20</span>
+          <div class="btn-group">
+            <button type="button" class="btn-copy btn-run-step" data-index="${idx}">Chạy bước này</button>
+            <button type="button" class="btn-secondary btn-copy-step" data-index="${idx}">Copy bước</button>
+          </div>
         </div>
-        <div>${step}</div>
+        <input type="text" class="step-edit-input" data-step-edit="${idx}" value="${escapeAttr(step)}" />
+        ${
+          out
+            ? `<div class="step-result-box">
+                 <div class="item-top">
+                   <strong>Prompt / Kết quả xử lý Bước ${idx + 1}</strong>
+                   <button type="button" class="btn-copy btn-copy-step-out" data-index="${idx}">Copy kết quả</button>
+                 </div>
+                 <pre class="prompt-pre">${escapeHtml(out)}</pre>
+               </div>`
+            : ""
+        }
       </div>
-    `
-    ).join("");
+    `;
+      })
+      .join("");
   }
 
   function buildPrompts() {
-    const topic = state.topic.trim() || "[Chưa nhập tên đề tài / bài toán TCNH]";
+    const topic = state.topic.trim() || "[Chưa nhập tên đề tài / bài toán]";
     const rq = state.rq.trim() || "[Chưa nhập câu hỏi nghiên cứu / mục tiêu chính]";
     const ctx = state.context.trim() || "[Chưa nhập bối cảnh / dữ liệu]";
-    const modeLabel = state.orientation === "research" ? "Định hướng Nghiên cứu" : "Định hướng Ứng dụng";
+    const extra = state.customInputText.trim() || "[Chưa dán thêm văn bản/dữ liệu tùy chỉnh]";
+    const modeLabel = els.orientationPill.textContent.replace("Đang chọn: ", "");
 
     return [
       {
-        title: `Prompt 1 — Khung đề cương & cấu trúc (${modeLabel})`,
+        title: `1. Khung đề cương, biến số & phương pháp (${modeLabel})`,
         body:
-          `Bạn là cố vấn học thuật & chuyên gia Tài chính – Ngân hàng (${modeLabel}).\n` +
-          `Đề tài / Bài toán: ${topic}\n` +
-          `Câu hỏi / Mục tiêu trọng tâm: ${rq}\n` +
-          `Bối cảnh & Dữ liệu: ${ctx}\n\n` +
-          `Hãy đề xuất:\n` +
-          `1. Khoảng trống nghiên cứu hoặc điểm nghẽn thực tế cần giải quyết.\n` +
-          `2. Khung đề cương chi tiết từng chương/mục.\n` +
-          `3. Bảng biến/chỉ tiêu (tên biến, ký hiệu, cách đo lường, kỳ vọng dấu/tác động).\n` +
-          `4. Phương pháp phân tích/kiểm định hoặc quy trình triển khai phù hợp.`
+          `Bạn là cố vấn học thuật & chuyên gia (${modeLabel}).\n` +
+          `Đề tài / Bài toán: ${topic}\nCâu hỏi / Mục tiêu: ${rq}\nBối cảnh & Dữ liệu: ${ctx}\n` +
+          `Hãy đề xuất: (1) Khoảng trống nghiên cứu hoặc điểm nghẽn thực tế, (2) Khung đề cương chi tiết, (3) Bảng biến/chỉ tiêu (tên, ký hiệu, thang đo/công thức, kỳ vọng dấu), (4) Phương pháp phân tích/kiểm định.`
       },
       {
-        title: "Prompt 2 — Tổng hợp tài liệu & LR Matrix cho NotebookLM / ChatGPT",
+        title: "2. Tổng hợp LR Matrix & Gap Matrix (Không suy diễn cảm tính)",
         body:
-          `Dựa trên các tài liệu đã nạp cho chủ đề: "${topic}" (${modeLabel}), hãy lập bảng tổng hợp gồm các cột:\n` +
+          `Dựa CHỈ trên các tài liệu/dữ liệu đã nạp cho chủ đề "${topic}" (${modeLabel}), lập bảng tổng hợp gồm:\n` +
           `Tác giả (Năm) | Bối cảnh & Dữ liệu | Mô hình / Phương pháp | Biến/Chỉ tiêu chính | Kết quả chính | Hạn chế / Khoảng trống.\n` +
-          `Sau đó chỉ ra 3 điểm đồng thuận và 3 điểm còn tranh luận hoặc chưa được khai thác sâu.`
+          `Phân biệt rõ: bằng chứng đã xác minh, suy luận của tác giả, gap do tác giả nêu và gap do suy luận; chỉ ra điểm đồng thuận, tranh luận và bằng chứng phản biện.`
       },
       {
-        title: "Prompt 3 — Rà soát logic, rủi ro phương pháp & cách bảo vệ",
+        title: "3. Tóm tắt tài liệu chuẩn hóa (Tên, Biến, Lý thuyết, Phương pháp, Kết quả, Hạn chế)",
         body:
-          `Hãy đóng vai hội đồng phản biện khắt khe cho đề tài/bài toán:\n` +
-          `- Tên: ${topic}\n` +
-          `- RQ / Mục tiêu: ${rq}\n` +
-          `- Bối cảnh: ${ctx}\n\n` +
-          `Chỉ ra 5 điểm dễ bị chất vấn nhất về dữ liệu, phương pháp, tính hợp lệ hoặc tính khả thi ứng dụng, kèm cách xử lý và câu trả lời bảo vệ ngắn gọn.`
+          `Tóm tắt chi tiết tài liệu sau theo cấu trúc: Tên nghiên cứu [Tiếng Anh (Tiếng Việt)]; Tác giả; Quốc gia; Biến độc lập/trung gian/điều tiết/phụ thuộc (kèm kích thước nếu có); Lý thuyết nền & vai trò; Phương pháp (Khảo sát | Lấy mẫu | Phân tích dữ liệu); Đóng góp/Kết quả (giữ nguyên tên biến tiếng Anh); Hạn chế/Hướng nghiên cứu tương lai (bullet bắt đầu bằng đề mục ngắn gọn):\n${extra}`
+      },
+      {
+        title: "4. Học có hướng dẫn từng bước (Socratic / Guided Learning)",
+        body:
+          `Đóng vai gia sư đại học, hướng dẫn tôi hiểu sâu "${topic}" (RQ: ${rq}) theo phương pháp học có hướng dẫn.\n` +
+          `Không giải toàn bộ ngay từ đầu; hãy hỏi tôi 2–3 câu hỏi kiểm tra hiểu biết trước, gợi ý khi tôi trả lời chưa đủ để tôi tự sửa, rồi mới chốt khái niệm và phân biệt các khía cạnh cốt lõi.`
+      },
+      {
+        title: "5. Xây dựng tài liệu học tập & 10 câu hỏi tự kiểm tra",
+        body:
+          `Dựa hoàn toàn trên tài liệu/dữ liệu sau, biên soạn tài liệu học tập gồm: (1) Mục tiêu học tập; (2) 5 kiến thức trọng tâm & lý do quan trọng; (3) Giải thích khái niệm khó + ví dụ; (4) Hệ thống hóa kiến thức; (5) 10 câu hỏi tự kiểm tra độ khó tăng dần (chưa cung cấp đáp án):\n${extra}`
+      },
+      {
+        title: "6. Dịch thuật ngữ học thuật Anh–Việt giữ nguyên cấu trúc & chống tỷ lệ AI",
+        body:
+          `Là chuyên gia ngôn ngữ Anh và nghiên cứu AI, hãy dịch chính xác đoạn văn sau cho bài báo khoa học về "${topic}", giữ nguyên cấu trúc câu văn, ngữ nghĩa và bối cảnh học thuật, diễn đạt tự nhiên:\n${extra}`
+      },
+      {
+        title: "7. Dàn ý bộ Slide hội thảo khoa học (12–15 slide, ~10 phút)",
+        body:
+          `Chuyển nghiên cứu/bài toán "${topic}" thành bộ slide hội thảo 12–15 slide (~10 phút), tối giản chữ (mỗi slide ~30–40 từ, ưu tiên sơ đồ/biểu đồ/bảng).\n` +
+          `Mỗi slide trình bày theo: SLIDE X — [Tên slide] | Objective | Main content | Suggested visual/graphic | Suggested layout | Presenter speaking notes (1–2 câu) | Estimated speaking time.`
+      },
+      {
+        title: "8. Chuẩn hóa trích dẫn (APA / IEEE / Footnote) & Kiểm soát Turnitin / Paraphrase",
+        body:
+          `Áp dụng chuẩn trích dẫn (APA: tên tác giả Việt Nam dùng tên gọi, xếp alphabet; IEEE: [1] theo thứ tự xuất hiện; Footnote cuối trang) và quy tắc kiểm soát trùng lặp/Turnitin (ưu tiên trích dẫn gián tiếp, tóm tắt đại ý kết hợp đổi cấu trúc câu, kiểm tra miễn trừ Quotes/Bibliography, không chèn ký tự lạ/ẩn).\n` +
+          `Nội dung cần kiểm tra/chuẩn hóa:\n${extra}`
       }
     ];
   }
@@ -377,10 +874,10 @@
         (pr, idx) => `
       <div class="item-box">
         <div class="item-top">
-          <span class="item-title">${pr.title}</span>
+          <span class="item-title">${escapeHtml(pr.title)}</span>
           <button type="button" class="btn-copy btn-copy-prompt" data-prompt-idx="${idx}">Copy prompt</button>
         </div>
-        <pre class="prompt-pre">${pr.body}</pre>
+        <pre class="prompt-pre">${escapeHtml(pr.body)}</pre>
       </div>
     `
       )
@@ -388,9 +885,22 @@
   }
 
   function renderMatrix() {
-    els.matrixBody.innerHTML = state.matrixRows
+    const filter = (state.lrSearch || "").trim().toLowerCase();
+    const rowsWithIdx = state.matrixRows
+      .map((row, idx) => ({ row, idx }))
+      .filter(({ row }) => {
+        if (!filter) return true;
+        return `${row.author} ${row.goal} ${row.vars} ${row.method} ${row.finding}`.toLowerCase().includes(filter);
+      });
+
+    if (els.lrCountBadge) {
+      const totalCorpus = Array.isArray(window.BUILTIN_LR_DATA) ? window.BUILTIN_LR_DATA.length : state.matrixRows.length;
+      els.lrCountBadge.textContent = `${rowsWithIdx.length}/${state.matrixRows.length} dòng (Kho: ${totalCorpus})`;
+    }
+
+    els.matrixBody.innerHTML = rowsWithIdx
       .map(
-        (row, idx) => `
+        ({ row, idx }) => `
       <tr data-row="${idx}">
         <td><input type="text" data-field="author" value="${escapeAttr(row.author)}" /></td>
         <td><input type="text" data-field="goal" value="${escapeAttr(row.goal)}" /></td>
@@ -404,13 +914,7 @@
       .join("");
   }
 
-  function escapeAttr(val) {
-    return String(val || "")
-      .replace(/&/g, "&amp;")
-      .replace(/"/g, "&quot;")
-      .replace(/</g, "&lt;");
-  }
-
+  // Event listeners
   els.orientBtns.forEach((btn) => {
     btn.addEventListener("click", () => setOrientation(btn.dataset.orientation));
   });
@@ -420,21 +924,39 @@
   });
 
   els.presetSelect.addEventListener("change", (e) => {
-    if (e.target.value) {
-      applyPresetById(e.target.value);
-    }
+    if (e.target.value) applyPresetById(e.target.value);
   });
 
+  if (els.autoRunAllBtn) {
+    els.autoRunAllBtn.addEventListener("click", runAll20Steps);
+  }
+  if (els.runAllStepsBtn) {
+    els.runAllStepsBtn.addEventListener("click", runAll20Steps);
+  }
+
   els.resetBtn.addEventListener("click", () => {
+    localStorage.removeItem(STORAGE_KEY);
+    state.selectedPresetId = "";
     state.topic = "";
     state.rq = "";
     state.context = "";
+    state.customInputText = "";
+    state.steps20 = [...DEFAULT_STEPS_20];
+    state.stepOutputs = {};
+    state.lrSearch = "";
+    state.matrixRows = getBuiltinLr().slice(0, 12);
     els.topicInput.value = "";
     els.rqInput.value = "";
     els.contextInput.value = "";
-    els.presetSelect.value = "";
+    els.customDataTextarea.value = "";
+    els.lrSearchInput.value = "";
+    els.autoPipelineOutput.hidden = true;
+    renderPresetSelect();
+    renderVariableFramework();
     renderPrompts();
-    showToast("Đã làm mới ô nhập");
+    renderSteps();
+    renderMatrix();
+    showToast("Đã làm mới trạng thái trên fbrh");
   });
 
   [els.topicInput, els.rqInput, els.contextInput].forEach((input) => {
@@ -442,9 +964,41 @@
       state.topic = els.topicInput.value;
       state.rq = els.rqInput.value;
       state.context = els.contextInput.value;
+      renderVariableFramework();
       renderPrompts();
+      saveState();
     });
   });
+
+  if (els.customDataFile) {
+    els.customDataFile.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) handleCustomFileUpload(file);
+      e.target.value = "";
+    });
+  }
+
+  if (els.applyCustomInputBtn) {
+    els.applyCustomInputBtn.addEventListener("click", () => {
+      state.customInputText = els.customDataTextarea.value;
+      renderPrompts();
+      saveState();
+      showToast("Đã áp dụng dữ liệu tùy chỉnh cho 20 bước & Prompt");
+    });
+  }
+
+  if (els.syncGithubBtn) {
+    els.syncGithubBtn.addEventListener("click", syncFromGithubResearchWorkflow);
+  }
+  if (els.syncGithubMatrixBtn) {
+    els.syncGithubMatrixBtn.addEventListener("click", syncFromGithubResearchWorkflow);
+  }
+  if (els.autoPopulateMatrixBtn) {
+    els.autoPopulateMatrixBtn.addEventListener("click", autoPopulateMatrixByTopic);
+  }
+  if (els.exportProjectBtn) {
+    els.exportProjectBtn.addEventListener("click", exportProjectJson);
+  }
 
   els.presetGrid.addEventListener("click", (e) => {
     const loadBtn = e.target.closest(".btn-load-preset");
@@ -457,28 +1011,49 @@
       const item = (PRESETS[state.orientation] || []).find((p) => p.id === copyBtn.dataset.id);
       if (item) {
         const txt =
-          `${item.title}\n` +
-          `Đề tài/Bài toán: ${item.topic}\n` +
-          `RQ/Mục tiêu: ${item.rq}\n` +
-          `Biến/Chỉ tiêu: ${item.variables}\n` +
-          `Phương pháp/Mô hình: ${item.method}\n` +
-          `Truy vấn: ${item.query}`;
+          `${item.title}\nĐề tài/Chủ đề: ${item.topic}\nRQ/Mục tiêu: ${item.rq}\n` +
+          `Biến/Chỉ tiêu: ${item.variables}\nPhương pháp/Mô hình: ${item.method}\nTruy vấn: ${item.query}`;
         copyText(txt, item.title);
       }
     }
   });
 
+  els.stepsList.addEventListener("input", (e) => {
+    const editInp = e.target.closest("[data-step-edit]");
+    if (!editInp) return;
+    const idx = Number(editInp.dataset.stepEdit);
+    if (!Number.isNaN(idx) && state.steps20[idx] !== undefined) {
+      state.steps20[idx] = editInp.value;
+      saveState();
+    }
+  });
+
   els.stepsList.addEventListener("click", (e) => {
-    const btn = e.target.closest(".btn-copy-step");
-    if (!btn) return;
-    const idx = Number(btn.dataset.index);
-    if (!Number.isNaN(idx) && STEPS_20[idx]) {
-      copyText(`Bước ${idx + 1}: ${STEPS_20[idx]}`, `Bước ${idx + 1}`);
+    const runBtn = e.target.closest(".btn-run-step");
+    if (runBtn) {
+      const idx = Number(runBtn.dataset.index);
+      if (!Number.isNaN(idx)) runSingleStep(idx);
+      return;
+    }
+    const copyOutBtn = e.target.closest(".btn-copy-step-out");
+    if (copyOutBtn) {
+      const idx = Number(copyOutBtn.dataset.index);
+      if (!Number.isNaN(idx) && state.stepOutputs[idx]) {
+        copyText(state.stepOutputs[idx], `Kết quả Bước ${idx + 1}`);
+      }
+      return;
+    }
+    const copyBtn = e.target.closest(".btn-copy-step");
+    if (copyBtn) {
+      const idx = Number(copyBtn.dataset.index);
+      if (!Number.isNaN(idx) && state.steps20[idx]) {
+        copyText(`Bước ${idx + 1}: ${state.steps20[idx]}`, `Bước ${idx + 1}`);
+      }
     }
   });
 
   els.copyAllStepsBtn.addEventListener("click", () => {
-    const all = STEPS_20.map((s, i) => `Bước ${i + 1}: ${s}`).join("\n");
+    const all = state.steps20.map((s, i) => `Bước ${i + 1}: ${s}`).join("\n");
     copyText(all, "Toàn bộ 20 bước");
   });
 
@@ -492,6 +1067,13 @@
     }
   });
 
+  if (els.lrSearchInput) {
+    els.lrSearchInput.addEventListener("input", (e) => {
+      state.lrSearch = e.target.value;
+      renderMatrix();
+    });
+  }
+
   els.matrixBody.addEventListener("input", (e) => {
     const tr = e.target.closest("tr");
     const field = e.target.dataset.field;
@@ -499,6 +1081,8 @@
     const rowIdx = Number(tr.dataset.row);
     if (state.matrixRows[rowIdx]) {
       state.matrixRows[rowIdx][field] = e.target.value;
+      renderVariableFramework();
+      saveState();
     }
   });
 
@@ -508,26 +1092,23 @@
     const rowIdx = Number(delBtn.dataset.row);
     if (!Number.isNaN(rowIdx) && state.matrixRows.length > 1) {
       state.matrixRows.splice(rowIdx, 1);
+      renderVariableFramework();
       renderMatrix();
+      saveState();
       showToast("Đã xóa dòng");
     }
   });
 
   els.addRowBtn.addEventListener("click", () => {
-    state.matrixRows.push({
-      author: "",
-      goal: "",
-      vars: "",
-      method: "",
-      finding: ""
-    });
+    state.matrixRows.push({ author: "", goal: "", vars: "", method: "", finding: "" });
     renderMatrix();
+    saveState();
   });
 
   els.copyMatrixBtn.addEventListener("click", () => {
     const header = [
       "Tác giả (Năm)",
-      "Mục tiêu / Bối cảnh",
+      "Mục tiêu / Bối cảnh / Nguồn",
       "Biến / Chỉ tiêu chính",
       "Phương pháp / Công cụ",
       "Kết quả & Khoảng trống / Ứng dụng"
@@ -540,8 +1121,21 @@
     copyText([header, ...lines].join("\n"), "Bảng LR Matrix");
   });
 
-  setOrientation("research");
+  // Boot sequence
+  loadSavedState();
+  els.topicInput.value = state.topic;
+  els.rqInput.value = state.rq;
+  els.contextInput.value = state.context;
+  els.customDataTextarea.value = state.customInputText;
+  els.lrSearchInput.value = state.lrSearch;
+  if (els.lrStatsText) {
+    const totalCorpus = Array.isArray(window.BUILTIN_LR_DATA) ? window.BUILTIN_LR_DATA.length : state.matrixRows.length;
+    els.lrStatsText.textContent = `Đã tích hợp ${totalCorpus} công trình từ tệp nguồn & hỗ trợ kéo dữ liệu từ longtr99/research-workflow vào fbrh (${state.githubStatus})`;
+  }
+
+  setOrientation(state.orientation);
   renderSteps();
+  renderVariableFramework();
   renderMatrix();
-  setActiveTab("library");
+  setActiveTab(state.activeTab);
 })();
