@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FBRH — Research Workbench &amp; Automation Hub (v2.1)</title>
-  <link rel="stylesheet" href="styles.css?v=2.1" />
+  <title>FBRH — Research Workbench &amp; Automation Hub (v2.3)</title>
+  <link rel="stylesheet" href="styles.css?v=2.3" />
 </head>
 <body>
   <header class="topbar">
@@ -12,11 +12,11 @@
       <div class="brand-block">
         <div class="top-badges">
           <span class="badge-tag">FBRH · TCNH &amp; QTKD</span>
-          <span class="version-pill" id="appVersionBadge">v2.1 · Auto-Sync Ready</span>
+          <span class="version-pill" id="appVersionBadge">v2.3 · Auto-Sync Ready</span>
         </div>
         <h1>RESEARCH WORKBENCH &amp; AUTOMATION HUB — TÀI CHÍNH, NGÂN HÀNG &amp; QTKD</h1>
         <p class="subtitle">
-          Tự động hóa 20 Bước · Kho 30 Chủ đề QTKD &amp; TCNH · Prompt Lab (Tóm tắt, LR, Dịch, Slide, APA/IEEE, Turnitin) · Auto LR Matrix &amp; Khung biến (GitHub `longtr99/research-workflow`)
+          Tự động hóa 20 Bước · Kho 30 Chủ đề QTKD &amp; TCNH · Prompt Lab · Auto LR Matrix (GitHub `longtr99/research-workflow`) · Khung biến / Chỉ tiêu
         </p>
       </div>
 
@@ -49,8 +49,8 @@
 
       <div class="data-toolbar">
         <label class="file-upload-btn" for="customDataFile">
-          Nạp file dữ liệu (.csv / .xlsx / .json / .txt / .md)
-          <input type="file" id="customDataFile" accept=".csv,.xlsx,.xls,.json,.txt,.md" hidden />
+          Nạp file (.pdf / .docx / .xlsx / .csv / .json / .txt)
+          <input type="file" id="customDataFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.json,.txt,.md" hidden />
         </label>
         <button type="button" id="syncGithubBtn" class="btn-secondary">Đồng bộ GitHub (research-workflow)</button>
         <button type="button" id="exportProjectBtn" class="btn-secondary">Xuất JSON dự án</button>
@@ -72,7 +72,10 @@
           3. Prompt &amp; Quy trình tự động hóa
         </button>
         <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="lrmatrix">
-          4. LR Matrix &amp; Khung biến (Auto)
+          4. LR Matrix (Auto)
+        </button>
+        <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="varframework">
+          5. Khung biến / Chỉ tiêu
         </button>
       </div>
     </div>
@@ -85,7 +88,7 @@
           <div>
             <h2 id="libraryTitle">Thư viện Hướng nghiên cứu chuyên ngành Tài chính – Ngân hàng</h2>
             <p id="libraryDesc" class="muted">
-              Chọn 1 chạm để nạp vào Workbench, tự động sinh Khung biến / Chỉ tiêu và cập nhật toàn bộ 20 bước + Prompt.
+              Chọn 1 chạm để nạp vào Workbench, tự động cập nhật LR Matrix, Khung biến / Chỉ tiêu, 20 bước và Prompt.
             </p>
           </div>
           <span id="orientationPill" class="orient-pill">Đang chọn: Nghiên cứu</span>
@@ -110,10 +113,22 @@
 
         <div class="custom-data-box">
           <div class="item-top">
-            <span class="item-title">Dữ liệu đầu vào tùy chỉnh (nạp từ file hoặc dán trực tiếp để chạy 20 bước)</span>
-            <button type="button" id="applyCustomInputBtn" class="btn-copy">Áp dụng dữ liệu vào 20 bước</button>
+            <span class="item-title">Tải tệp offline (PDF / Word / Excel / TXT / CSV / JSON) hoặc link online cho 20 bước</span>
+            <button type="button" id="applyCustomInputBtn" class="btn-copy">Áp dụng vào 20 bước</button>
           </div>
-          <textarea id="customDataTextarea" rows="3" placeholder="Dán tóm tắt tài liệu, ghi chú khảo sát, dữ liệu biến số hoặc nội dung chương để chạy tự động 20 bước..."></textarea>
+
+          <div class="source-ingest-row">
+            <label class="btn-secondary file-ingest-label" for="stepSourceFile">
+              Chọn tệp offline (.pdf/.docx/.xlsx/.csv/.txt)
+              <input type="file" id="stepSourceFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.json,.txt,.md" hidden />
+            </label>
+            <input type="url" id="stepSourceUrlInput" class="url-ingest-input" placeholder="Dán link file online (PDF / Word / Excel / TXT / JSON / Raw GitHub)..." />
+            <button type="button" id="fetchStepUrlBtn" class="btn-primary">Tải từ link</button>
+          </div>
+
+          <div id="stepIngestStatus" class="muted ingest-status">Chưa nạp tệp/link mới. Có thể tải tệp/link hoặc dán nội dung trực tiếp bên dưới.</div>
+
+          <textarea id="customDataTextarea" rows="4" placeholder="Nội dung bóc tách từ file PDF/Word/Excel/link hoặc ghi chú dữ liệu tùy chỉnh để chạy 20 bước..."></textarea>
         </div>
 
         <div id="autoPipelineOutput" class="pipeline-box" hidden></div>
@@ -137,7 +152,7 @@
       <div class="card">
         <div class="card-header-row">
           <div>
-            <h2>Literature Review Matrix &amp; Khung biến / Chỉ tiêu (Tự động nhảy dữ liệu)</h2>
+            <h2>Literature Review Matrix (Tự động nhảy dữ liệu)</h2>
             <p class="muted" id="lrStatsText">Đang tổng hợp dữ liệu từ tệp đính kèm và GitHub `longtr99/research-workflow`...</p>
           </div>
           <div class="btn-group">
@@ -145,15 +160,14 @@
             <button type="button" id="syncGithubMatrixBtn" class="btn-secondary">Lấy từ GitHub research-workflow</button>
             <button type="button" id="addRowBtn" class="btn-secondary">+ Thêm dòng</button>
             <button type="button" id="copyMatrixBtn" class="btn-secondary">Copy bảng (TSV)</button>
+            <button type="button" id="exportMatrixExcelBtn" class="btn-secondary">Xuất Excel (.xlsx)</button>
           </div>
         </div>
 
         <div class="lr-filter-row">
-          <input id="lrSearchInput" type="text" placeholder="Lọc nhanh công trình theo từ khóa, tác giả, biến, phương pháp (vd: ESG, SDT, GMM, Motivation, Digital)..." />
+          <input id="lrSearchInput" type="text" placeholder="Lọc nhanh công trình theo từ khóa, tác giả, biến, phương pháp..." />
           <span id="lrCountBadge" class="orient-pill">0 công trình</span>
         </div>
-
-        <div id="variableFrameworkBox" class="var-framework-box"></div>
 
         <div class="table-scroll">
           <table class="matrix-table" id="matrixTable">
@@ -172,12 +186,47 @@
         </div>
       </div>
     </section>
+
+    <section id="tab-varframework" class="tab-panel" role="tabpanel" hidden>
+      <div class="card">
+        <div class="card-header-row">
+          <div>
+            <h2>Khung biến / Chỉ tiêu tự động (Đề tài · RQ · Bối cảnh · Y · X · Trung gian/Điều tiết/Kiểm soát · Phương pháp &amp; Thang đo)</h2>
+            <p class="muted">Tự động đồng bộ khi chọn/nhập đề tài, chỉnh sửa trực tiếp từng ô, copy TSV hoặc xuất file Excel (.xlsx).</p>
+          </div>
+          <div class="btn-group">
+            <button type="button" id="rebuildVarTableBtn" class="btn-primary">Tự động điền từ đề tài</button>
+            <button type="button" id="addVarRowBtn" class="btn-secondary">+ Thêm dòng</button>
+            <button type="button" id="copyVarTableBtn" class="btn-secondary">Copy khung biến (TSV)</button>
+            <button type="button" id="exportVarExcelBtn" class="btn-secondary">Xuất Excel (.xlsx)</button>
+          </div>
+        </div>
+
+        <div class="table-scroll">
+          <table class="matrix-table" id="varFrameworkTable">
+            <thead>
+              <tr>
+                <th>Đề tài / RQ / Bối cảnh</th>
+                <th>Biến phụ thuộc / Chỉ tiêu đầu ra (Y)</th>
+                <th>Biến độc lập / Nhân tố tác động (X)</th>
+                <th>Trung gian / Điều tiết / Kiểm soát (Med/Mod/Controls)</th>
+                <th>Phương pháp &amp; Thang đo gợi ý</th>
+                <th>Xóa</th>
+              </tr>
+            </thead>
+            <tbody id="varFrameworkBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </main>
 
   <div id="toast" class="toast" aria-live="polite">Đã copy</div>
 
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-  <script src="data_lr.js?v=2.1"></script>
-  <script src="app.js?v=2.1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="data_lr.js?v=2.3"></script>
+  <script src="app.js?v=2.3"></script>
 </body>
 </html>
