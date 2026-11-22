@@ -2,6 +2,11 @@
   const STORAGE_KEY = "FBRH_WORKBENCH_V2_STATE";
   const SOURCE_GITHUB_REPO = { owner: "longtr99", repo: "research-workflow" };
 
+  if (window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions) {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  }
+
   const PRESETS = {
     research: [
       {
@@ -204,6 +209,7 @@
     steps20: [...DEFAULT_STEPS_20],
     stepOutputs: {},
     matrixRows: [],
+    varRows: [],
     lrSearch: "",
     githubStatus: "Chưa đồng bộ trực tiếp"
   };
@@ -231,6 +237,38 @@
     ];
   }
 
+  function buildVarRowFromCurrentState() {
+    const preset = getCurrentPreset();
+    const topic = state.topic.trim() || "[Chưa nhập tên đề tài]";
+    const rq = state.rq.trim() || "[Chưa nhập RQ / Mục tiêu]";
+    const ctx = state.context.trim() || "[Chưa nhập bối cảnh / dữ liệu]";
+    const varsText = preset
+      ? preset.variables
+      : "Y: Biến/Chỉ tiêu đầu ra | X: Biến/Nhân tố tác động | Controls: Quy mô, Đòn bẩy, Bối cảnh";
+    const methodText = preset
+      ? preset.method
+      : "Khảo sát / Định lượng (Cronbach's Alpha, EFA, CFA, SEM/PLS-SEM, OLS/Panel/GMM) hoặc Định tính / Mô hình đánh giá";
+
+    const parts = varsText.split("|").map((s) => s.trim());
+    const yVar = parts[0] || "Y: Biến phụ thuộc / Chỉ tiêu mục tiêu";
+    const xVar = parts[1] || "X: Biến độc lập / Yếu tố tác động";
+    const medModVar = parts.slice(2).join(" | ") || "Biến trung gian / Điều tiết / Biến kiểm soát";
+
+    return {
+      meta: `Đề tài: ${topic} | RQ: ${rq} | Bối cảnh: ${ctx}`,
+      yVar,
+      xVar,
+      medModVar,
+      methodScale: methodText
+    };
+  }
+
+  function rebuildVarRowsFromTopic() {
+    state.varRows = [buildVarRowFromCurrentState()];
+    saveState();
+    renderVarFramework();
+  }
+
   function loadSavedState() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -247,6 +285,9 @@
     } catch (_) {}
     if (!Array.isArray(state.matrixRows) || state.matrixRows.length === 0) {
       state.matrixRows = getBuiltinLr().slice(0, 12);
+    }
+    if (!Array.isArray(state.varRows) || state.varRows.length === 0) {
+      state.varRows = [buildVarRowFromCurrentState()];
     }
   }
 
@@ -268,6 +309,10 @@
     rqInput: document.getElementById("rqInput"),
     contextInput: document.getElementById("contextInput"),
     customDataFile: document.getElementById("customDataFile"),
+    stepSourceFile: document.getElementById("stepSourceFile"),
+    stepSourceUrlInput: document.getElementById("stepSourceUrlInput"),
+    fetchStepUrlBtn: document.getElementById("fetchStepUrlBtn"),
+    stepIngestStatus: document.getElementById("stepIngestStatus"),
     customDataTextarea: document.getElementById("customDataTextarea"),
     applyCustomInputBtn: document.getElementById("applyCustomInputBtn"),
     autoPipelineOutput: document.getElementById("autoPipelineOutput"),
@@ -285,11 +330,15 @@
     lrStatsText: document.getElementById("lrStatsText"),
     lrSearchInput: document.getElementById("lrSearchInput"),
     lrCountBadge: document.getElementById("lrCountBadge"),
-    variableFrameworkBox: document.getElementById("variableFrameworkBox"),
-    autoPopulateMatrixBtn: document.getElementById("autoPopulateMatrixBtn"),
     matrixBody: document.getElementById("matrixBody"),
     addRowBtn: document.getElementById("addRowBtn"),
     copyMatrixBtn: document.getElementById("copyMatrixBtn"),
+    exportMatrixExcelBtn: document.getElementById("exportMatrixExcelBtn"),
+    rebuildVarTableBtn: document.getElementById("rebuildVarTableBtn"),
+    addVarRowBtn: document.getElementById("addVarRowBtn"),
+    copyVarTableBtn: document.getElementById("copyVarTableBtn"),
+    exportVarExcelBtn: document.getElementById("exportVarExcelBtn"),
+    varFrameworkBody: document.getElementById("varFrameworkBody"),
     toast: document.getElementById("toast")
   };
 
@@ -301,6 +350,10 @@
     showToast._timer = setTimeout(() => {
       els.toast.classList.remove("show");
     }, 2000);
+  }
+
+  function setStepIngestStatus(msg) {
+    if (els.stepIngestStatus) els.stepIngestStatus.textContent = msg;
   }
 
   async function copyText(text, label) {
@@ -321,6 +374,19 @@
     } catch (_) {
       showToast("Không thể copy tự động, hãy bôi đen thủ công");
     }
+  }
+
+  function exportRowsToExcel(headers, rows, fileName, sheetName) {
+    if (!window.XLSX) {
+      showToast("Thư viện xuất Excel chưa tải xong");
+      return;
+    }
+    const aoa = [headers, ...rows];
+    const ws = window.XLSX.utils.aoa_to_sheet(aoa);
+    const wb = window.XLSX.utils.book_new();
+    window.XLSX.utils.book_append_sheet(wb, ws, sheetName || "Data");
+    window.XLSX.writeFile(wb, fileName);
+    showToast(`Đã xuất ${fileName}`);
   }
 
   function escapeHtml(val) {
@@ -358,44 +424,6 @@
     return list.find((p) => p.id === state.selectedPresetId) || null;
   }
 
-  function renderVariableFramework() {
-    const preset = getCurrentPreset();
-    const topic = state.topic.trim() || "[Chưa nhập tên đề tài]";
-    const rq = state.rq.trim() || "[Chưa nhập RQ / Mục tiêu]";
-    const ctx = state.context.trim() || "[Chưa nhập bối cảnh / dữ liệu]";
-    const varsText = preset ? preset.variables : "Y: Biến/Chỉ tiêu đầu ra | X: Biến/Nhân tố tác động | Controls: Quy mô, Đòn bẩy, Bối cảnh";
-    const methodText = preset ? preset.method : "Khảo sát / Định lượng (Cronbach's Alpha, EFA, CFA, SEM/PLS-SEM, OLS/Panel/GMM) hoặc Định tính / Mô hình đánh giá";
-
-    const parts = varsText.split("|").map((s) => s.trim());
-    const yVar = parts[0] || "Y: Biến phụ thuộc / Chỉ tiêu mục tiêu";
-    const xVar = parts[1] || "X: Biến độc lập / Yếu tố tác động";
-    const extraVar = parts.slice(2).join(" | ") || "Biến trung gian / Điều tiết / Biến kiểm soát";
-
-    els.variableFrameworkBox.innerHTML = `
-      <div class="item-top">
-        <span class="item-title">Khung biến / Chỉ tiêu tự động — ${escapeHtml(topic)}</span>
-        <button type="button" class="btn-copy" id="copyVarFrameworkBtn">Copy khung biến</button>
-      </div>
-      <div class="muted"><strong>RQ / Trọng tâm:</strong> ${escapeHtml(rq)} | <strong>Bối cảnh:</strong> ${escapeHtml(ctx)}</div>
-      <div class="var-grid">
-        <div class="var-cell"><strong>1. Biến / Chỉ tiêu đầu ra (Y / DV):</strong><br/>${escapeHtml(yVar)}</div>
-        <div class="var-cell"><strong>2. Biến / Nhân tố tác động (X / IV):</strong><br/>${escapeHtml(xVar)}</div>
-        <div class="var-cell"><strong>3. Trung gian / Điều tiết / Kiểm soát:</strong><br/>${escapeHtml(extraVar)}</div>
-        <div class="var-cell"><strong>4. Phương pháp &amp; Thang đo gợi ý:</strong><br/>${escapeHtml(methodText)}</div>
-      </div>
-    `;
-
-    const copyBtn = document.getElementById("copyVarFrameworkBtn");
-    if (copyBtn) {
-      copyBtn.addEventListener("click", () => {
-        const txt =
-          `Đề tài: ${topic}\nRQ: ${rq}\nBối cảnh: ${ctx}\n` +
-          `- Đầu ra (Y): ${yVar}\n- Tác động (X): ${xVar}\n- Trung gian/Điều tiết/Kiểm soát: ${extraVar}\n- Phương pháp: ${methodText}`;
-        copyText(txt, "Khung biến / Chỉ tiêu");
-      });
-    }
-  }
-
   function autoPopulateMatrixByTopic() {
     const allBuiltin = getBuiltinLr();
     const keywords = `${state.topic} ${state.rq} ${state.context}`
@@ -426,8 +454,159 @@
 
     saveState();
     renderMatrix();
-    renderVariableFramework();
     showToast(`Đã tự động nhảy ${state.matrixRows.length} công trình vào LR Matrix`);
+  }
+
+  async function extractTextFromPdfBuffer(arrayBuffer) {
+    if (!window.pdfjsLib) throw new Error("Thư viện PDF chưa tải xong");
+    const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const chunks = [];
+    const maxPages = Math.min(pdf.numPages, 30);
+    for (let p = 1; p <= maxPages; p++) {
+      const page = await pdf.getPage(p);
+      const content = await page.getTextContent();
+      const pageStr = content.items.map((it) => it.str || "").join(" ").trim();
+      if (pageStr) chunks.push(`[Trang ${p}] ${pageStr}`);
+    }
+    return chunks.join("\n\n");
+  }
+
+  async function extractTextFromDocxBuffer(arrayBuffer) {
+    if (!window.mammoth) throw new Error("Thư viện Word (.docx) chưa tải xong");
+    const result = await window.mammoth.extractRawText({ arrayBuffer });
+    return String(result && result.value ? result.value : "").trim();
+  }
+
+  function extractTextFromExcelBuffer(arrayBuffer, fileName) {
+    if (!window.XLSX) throw new Error("Thư viện Excel/CSV chưa tải xong");
+    const wb = window.XLSX.read(arrayBuffer, { type: "array" });
+    const parts = [];
+    const matrixAddition = [];
+
+    for (const sName of wb.sheetNames) {
+      const rows = window.XLSX.utils.sheet_to_json(wb.Sheets[sName], { defval: "" });
+      if (!rows.length) continue;
+      parts.push(`[Sheet: ${sName}] (${rows.length} dòng)\n` + rows.slice(0, 20).map((r) => JSON.stringify(r)).join("\n"));
+      rows.slice(0, 40).forEach((r, i) => {
+        const vals = Object.values(r);
+        matrixAddition.push({
+          author: String(r["Tên tác giả"] || r.Authors || r.Author || vals[1] || `${fileName} #${i + 1}`),
+          goal: String(r["Tên công trình"] || r.Title || r.Goal || vals[2] || `${fileName} [${sName}]`),
+          vars: String(r.Keyword || r.Keywords || r.Variables || r.Vars || vals[4] || ""),
+          method: String(r.Method || r["Phương pháp"] || r.DOI || vals[5] || fileName),
+          finding: String(r["Tóm tắt (150–300 từ)"] || r.Takeaway || r.Finding || vals[6] || Object.values(r).join(" | "))
+        });
+      });
+    }
+
+    if (matrixAddition.length) {
+      state.matrixRows = [...matrixAddition, ...state.matrixRows];
+    }
+    return parts.join("\n\n");
+  }
+
+  async function ingestBufferByName(arrayBuffer, name, targetFor20Steps) {
+    const lower = String(name || "").toLowerCase();
+    let extracted = "";
+
+    if (lower.endsWith(".pdf")) {
+      extracted = await extractTextFromPdfBuffer(arrayBuffer);
+    } else if (lower.endsWith(".docx") || lower.endsWith(".doc")) {
+      extracted = await extractTextFromDocxBuffer(arrayBuffer);
+    } else if (lower.endsWith(".xlsx") || lower.endsWith(".xls") || lower.endsWith(".csv")) {
+      extracted = extractTextFromExcelBuffer(arrayBuffer, name);
+    } else {
+      extracted = new TextDecoder("utf-8").decode(arrayBuffer);
+      if (lower.endsWith(".json")) {
+        try {
+          const parsed = JSON.parse(extracted);
+          const arr = Array.isArray(parsed) ? parsed : (parsed.items || parsed.matrixRows || []);
+          if (Array.isArray(arr) && arr.length) {
+            const mapped = arr.slice(0, 40).map((x) => ({
+              author: x.author || x.Authors || name,
+              goal: x.goal || x.Title || name,
+              vars: x.vars || x.Keyword || "",
+              method: x.method || x.Method || name,
+              finding: x.finding || x.Takeaway || ""
+            }));
+            state.matrixRows = [...mapped, ...state.matrixRows];
+          }
+        } catch (_) {}
+      }
+    }
+
+    const cleaned = String(extracted || "").trim();
+    const block = `\n--- [Nguồn: ${name}] ---\n${cleaned.slice(0, 6000)}`;
+    state.customInputText = `${state.customInputText}${block}`.trim();
+    if (els.customDataTextarea) els.customDataTextarea.value = state.customInputText;
+    saveState();
+    renderMatrix();
+    renderPrompts();
+
+    if (targetFor20Steps) {
+      setStepIngestStatus(`Đã nạp & bóc tách "${name}" (${cleaned.length} ký tự) cho 20 bước.`);
+    }
+    showToast(`Đã nạp ${name}`);
+  }
+
+  async function handleCustomFileUpload(file, targetFor20Steps = false) {
+    if (!file) return;
+    try {
+      if (targetFor20Steps) setStepIngestStatus(`Đang đọc tệp "${file.name}"...`);
+      const buf = await file.arrayBuffer();
+      await ingestBufferByName(buf, file.name, targetFor20Steps);
+    } catch (err) {
+      const msg = `Lỗi đọc tệp "${file.name}": ${err.message || err}`;
+      if (targetFor20Steps) setStepIngestStatus(msg);
+      showToast(msg);
+    }
+  }
+
+  async function handleFetchFromUrl() {
+    const rawUrl = (els.stepSourceUrlInput && els.stepSourceUrlInput.value || "").trim();
+    if (!rawUrl) {
+      showToast("Hãy dán link file online trước");
+      return;
+    }
+    try {
+      setStepIngestStatus(`Đang tải dữ liệu từ link: ${rawUrl}...`);
+      const res = await fetch(rawUrl);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const contentType = (res.headers.get("content-type") || "").toLowerCase();
+      const urlPath = rawUrl.split("?")[0].split("/").pop() || "online-source";
+
+      if (contentType.includes("pdf") || urlPath.toLowerCase().endsWith(".pdf")) {
+        const buf = await res.arrayBuffer();
+        await ingestBufferByName(buf, urlPath.endsWith(".pdf") ? urlPath : `${urlPath}.pdf`, true);
+      } else if (
+        contentType.includes("word") ||
+        contentType.includes("officedocument.wordprocessingml") ||
+        /\.(docx|doc)$/i.test(urlPath)
+      ) {
+        const buf = await res.arrayBuffer();
+        await ingestBufferByName(buf, /\.(docx|doc)$/i.test(urlPath) ? urlPath : `${urlPath}.docx`, true);
+      } else if (
+        contentType.includes("spreadsheet") ||
+        contentType.includes("excel") ||
+        /\.(xlsx|xls|csv)$/i.test(urlPath)
+      ) {
+        const buf = await res.arrayBuffer();
+        await ingestBufferByName(buf, urlPath, true);
+      } else {
+        const txt = await res.text();
+        const block = `\n--- [Link online: ${rawUrl}] ---\n${txt.slice(0, 6000)}`;
+        state.customInputText = `${state.customInputText}${block}`.trim();
+        els.customDataTextarea.value = state.customInputText;
+        saveState();
+        renderPrompts();
+        setStepIngestStatus(`Đã tải nội dung từ link (${txt.length} ký tự) cho 20 bước.`);
+        showToast("Đã tải dữ liệu từ link");
+      }
+    } catch (err) {
+      const errMsg = `Không tải trực tiếp được link (${err.message || "CORS/mạng"}) — hãy tải file về máy rồi chọn nút "Chọn tệp offline"`;
+      setStepIngestStatus(errMsg);
+      showToast("Không tải trực tiếp được link (kiểm tra CORS)");
+    }
   }
 
   function parseCsvSimple(csvText) {
@@ -462,93 +641,13 @@
     });
   }
 
-  function handleCustomFileUpload(file) {
-    if (!file) return;
-    const reader = new FileReader();
-    const isBinaryExcel = /\.(xlsx|xls)$/i.test(file.name);
-
-    reader.onload = (e) => {
-      try {
-        if (isBinaryExcel && window.XLSX) {
-          const wb = window.XLSX.read(e.target.result, { type: "array" });
-          const firstSheet = wb.Sheets[wb.SheetNames[0]];
-          const rows = window.XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
-          const newMatrix = rows.slice(0, 60).map((r, i) => {
-            const vals = Object.values(r);
-            return {
-              author: String(r["Tên tác giả"] || r.Authors || r.Author || vals[1] || `File ${file.name} #${i + 1}`),
-              goal: String(r["Tên công trình"] || r.Title || r.Goal || vals[2] || file.name),
-              vars: String(r.Keyword || r.Keywords || r.Variables || r.Vars || vals[4] || ""),
-              method: String(r.Method || r["Phương pháp"] || r.DOI || vals[5] || file.name),
-              finding: String(r["Tóm tắt (150–300 từ)"] || r.Takeaway || r.Finding || vals[6] || Object.values(r).join(" | "))
-            };
-          });
-          if (newMatrix.length > 0) {
-            state.matrixRows = [...newMatrix, ...state.matrixRows];
-          }
-          const summaryText = rows.slice(0, 15).map((r) => JSON.stringify(r)).join("\n");
-          state.customInputText = summaryText;
-          els.customDataTextarea.value = state.customInputText;
-          saveState();
-          renderMatrix();
-          renderPrompts();
-          showToast(`Đã nạp ${newMatrix.length} dòng từ ${file.name}`);
-          return;
-        }
-
-        const text = String(e.target.result || "");
-        state.customInputText = text.slice(0, 8000);
-        els.customDataTextarea.value = state.customInputText;
-
-        if (file.name.endsWith(".json")) {
-          const parsed = JSON.parse(text);
-          const arr = Array.isArray(parsed) ? parsed : (parsed.items || parsed.matrixRows || []);
-          if (Array.isArray(arr) && arr.length > 0) {
-            state.matrixRows = arr.map((x) => ({
-              author: x.author || "",
-              goal: x.goal || "",
-              vars: x.vars || "",
-              method: x.method || "",
-              finding: x.finding || ""
-            }));
-          }
-        } else if (file.name.endsWith(".csv")) {
-          const rows = parseCsvSimple(text);
-          if (rows.length > 0) {
-            const mapped = rows.map((r) => ({
-              author: r.Authors || r.Author || r["Tên tác giả"] || file.name,
-              goal: r.Title || r["Tên công trình"] || file.name,
-              vars: r.Keyword || r.Variables || "",
-              method: r.Method || file.name,
-              finding: r.Takeaway || r.Finding || r.Abstract || Object.values(r).join(" | ")
-            }));
-            state.matrixRows = [...mapped, ...state.matrixRows];
-          }
-        }
-
-        saveState();
-        renderMatrix();
-        renderPrompts();
-        showToast(`Đã nạp tệp ${file.name}`);
-      } catch (err) {
-        showToast(`Lỗi đọc tệp ${file.name}: ${err.message || err}`);
-      }
-    };
-
-    if (isBinaryExcel) {
-      reader.readAsArrayBuffer(file);
-    } else {
-      reader.readAsText(file, "utf-8");
-    }
-  }
-
   async function syncFromGithubResearchWorkflow() {
     els.syncStatusText.textContent = "Đang đồng bộ dữ liệu từ GitHub longtr99/research-workflow vào fbrh...";
     try {
       const apiUrl = `https://api.github.com/repos/${SOURCE_GITHUB_REPO.owner}/${SOURCE_GITHUB_REPO.repo}/git/trees/HEAD?recursive=1`;
       const res = await fetch(apiUrl, { headers: { Accept: "application/vnd.github+json" } });
       if (!res.ok) {
-        throw new Error(`HTTP ${res.status} (kiểm tra quyền truy cập repo hoặc giới hạn API)`);
+        throw new Error(`HTTP ${res.status}`);
       }
       const treeData = await res.json();
       const blobs = (treeData.tree || [])
@@ -607,7 +706,6 @@
       els.syncStatusText.textContent = state.githubStatus;
       saveState();
       renderMatrix();
-      renderVariableFramework();
       renderPrompts();
       showToast(state.githubStatus);
     } catch (err) {
@@ -628,7 +726,8 @@
       customInputText: state.customInputText,
       steps20: state.steps20,
       stepOutputs: state.stepOutputs,
-      matrixRows: state.matrixRows
+      matrixRows: state.matrixRows,
+      varRows: state.varRows
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -719,11 +818,10 @@
       ? "Tập trung khoảng trống nghiên cứu, biến số, mô hình kinh tế lượng, kiểm định giả thuyết và truy vấn Scopus."
       : isApplied
         ? "Tập trung bài toán thực tế, bộ chỉ tiêu/mô hình chấm điểm – định giá – quản trị rủi ro và kịch bản triển khai."
-        : "Chọn 1 chủ đề trong 30 chủ đề để tự động điền đề tài, RQ, biến số, phương pháp và đồng bộ LR Matrix.";
+        : "Chọn 1 chủ đề trong 30 chủ đề để tự động điền đề tài, RQ, biến số, phương pháp và đồng bộ LR Matrix + Khung biến.";
 
     renderPresetSelect();
     renderPresetGrid();
-    renderVariableFramework();
     renderPrompts();
     saveState();
   }
@@ -748,7 +846,7 @@
     els.contextInput.value = state.context;
     els.presetSelect.value = found.id;
     autoPopulateMatrixByTopic();
-    renderVariableFramework();
+    rebuildVarRowsFromTopic();
     renderPrompts();
     saveState();
     showToast(`Đã nạp & nhảy dữ liệu: ${found.title}`);
@@ -961,6 +1059,24 @@
       .join("");
   }
 
+  function renderVarFramework() {
+    if (!els.varFrameworkBody) return;
+    els.varFrameworkBody.innerHTML = state.varRows
+      .map(
+        (r, idx) => `
+      <tr data-var-row="${idx}">
+        <td><input type="text" data-var-field="meta" value="${escapeAttr(r.meta)}" /></td>
+        <td><input type="text" data-var-field="yVar" value="${escapeAttr(r.yVar)}" /></td>
+        <td><input type="text" data-var-field="xVar" value="${escapeAttr(r.xVar)}" /></td>
+        <td><input type="text" data-var-field="medModVar" value="${escapeAttr(r.medModVar)}" /></td>
+        <td><input type="text" data-var-field="methodScale" value="${escapeAttr(r.methodScale)}" /></td>
+        <td><button type="button" class="btn-danger btn-del-var-row" data-var-row="${idx}">Xóa</button></td>
+      </tr>
+    `
+      )
+      .join("");
+  }
+
   // Event listeners
   els.orientBtns.forEach((btn) => {
     btn.addEventListener("click", () => setOrientation(btn.dataset.orientation));
@@ -992,17 +1108,19 @@
     state.stepOutputs = {};
     state.lrSearch = "";
     state.matrixRows = getBuiltinLr().slice(0, 12);
+    state.varRows = [buildVarRowFromCurrentState()];
     els.topicInput.value = "";
     els.rqInput.value = "";
     els.contextInput.value = "";
     els.customDataTextarea.value = "";
     els.lrSearchInput.value = "";
     els.autoPipelineOutput.hidden = true;
+    setStepIngestStatus("Đã làm mới nguồn dữ liệu 20 bước.");
     renderPresetSelect();
-    renderVariableFramework();
     renderPrompts();
     renderSteps();
     renderMatrix();
+    renderVarFramework();
     showToast("Đã làm mới trạng thái trên fbrh");
   });
 
@@ -1011,7 +1129,11 @@
       state.topic = els.topicInput.value;
       state.rq = els.rqInput.value;
       state.context = els.contextInput.value;
-      renderVariableFramework();
+      if (state.varRows.length > 0) {
+        const latest = buildVarRowFromCurrentState();
+        state.varRows[0] = latest;
+      }
+      renderVarFramework();
       renderPrompts();
       saveState();
     });
@@ -1020,9 +1142,21 @@
   if (els.customDataFile) {
     els.customDataFile.addEventListener("change", (e) => {
       const file = e.target.files && e.target.files[0];
-      if (file) handleCustomFileUpload(file);
+      if (file) handleCustomFileUpload(file, false);
       e.target.value = "";
     });
+  }
+
+  if (els.stepSourceFile) {
+    els.stepSourceFile.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) handleCustomFileUpload(file, true);
+      e.target.value = "";
+    });
+  }
+
+  if (els.fetchStepUrlBtn) {
+    els.fetchStepUrlBtn.addEventListener("click", handleFetchFromUrl);
   }
 
   if (els.applyCustomInputBtn) {
@@ -1030,7 +1164,8 @@
       state.customInputText = els.customDataTextarea.value;
       renderPrompts();
       saveState();
-      showToast("Đã áp dụng dữ liệu tùy chỉnh cho 20 bước & Prompt");
+      setStepIngestStatus("Đã áp dụng nội dung hiện tại vào 20 bước & Prompt.");
+      showToast("Đã áp dụng dữ liệu vào 20 bước");
     });
   }
 
@@ -1128,7 +1263,6 @@
     const rowIdx = Number(tr.dataset.row);
     if (state.matrixRows[rowIdx]) {
       state.matrixRows[rowIdx][field] = e.target.value;
-      renderVariableFramework();
       saveState();
     }
   });
@@ -1139,7 +1273,6 @@
     const rowIdx = Number(delBtn.dataset.row);
     if (!Number.isNaN(rowIdx) && state.matrixRows.length > 1) {
       state.matrixRows.splice(rowIdx, 1);
-      renderVariableFramework();
       renderMatrix();
       saveState();
       showToast("Đã xóa dòng");
@@ -1168,6 +1301,92 @@
     copyText([header, ...lines].join("\n"), "Bảng LR Matrix");
   });
 
+  if (els.exportMatrixExcelBtn) {
+    els.exportMatrixExcelBtn.addEventListener("click", () => {
+      const headers = [
+        "Tác giả (Năm)",
+        "Mục tiêu / Bối cảnh / Nguồn",
+        "Biến / Chỉ tiêu chính",
+        "Phương pháp / Công cụ",
+        "Kết quả & Khoảng trống / Ứng dụng"
+      ];
+      const rows = state.matrixRows.map((r) => [r.author, r.goal, r.vars, r.method, r.finding]);
+      exportRowsToExcel(headers, rows, "FBRH_LR_Matrix.xlsx", "LR_Matrix");
+    });
+  }
+
+  if (els.rebuildVarTableBtn) {
+    els.rebuildVarTableBtn.addEventListener("click", () => {
+      rebuildVarRowsFromTopic();
+      showToast("Đã tự động điền Khung biến từ đề tài");
+    });
+  }
+
+  if (els.addVarRowBtn) {
+    els.addVarRowBtn.addEventListener("click", () => {
+      state.varRows.push({ meta: "", yVar: "", xVar: "", medModVar: "", methodScale: "" });
+      renderVarFramework();
+      saveState();
+    });
+  }
+
+  if (els.copyVarTableBtn) {
+    els.copyVarTableBtn.addEventListener("click", () => {
+      const header = [
+        "Đề tài / RQ / Bối cảnh",
+        "Biến phụ thuộc / Chỉ tiêu đầu ra (Y)",
+        "Biến độc lập / Nhân tố tác động (X)",
+        "Trung gian / Điều tiết / Kiểm soát (Med/Mod/Controls)",
+        "Phương pháp & Thang đo gợi ý"
+      ].join("\t");
+      const lines = state.varRows.map((r) =>
+        [r.meta, r.yVar, r.xVar, r.medModVar, r.methodScale]
+          .map((v) => String(v || "").replace(/\t|\n/g, " "))
+          .join("\t")
+      );
+      copyText([header, ...lines].join("\n"), "Khung biến / Chỉ tiêu");
+    });
+  }
+
+  if (els.exportVarExcelBtn) {
+    els.exportVarExcelBtn.addEventListener("click", () => {
+      const headers = [
+        "Đề tài / RQ / Bối cảnh",
+        "Biến phụ thuộc / Chỉ tiêu đầu ra (Y)",
+        "Biến độc lập / Nhân tố tác động (X)",
+        "Trung gian / Điều tiết / Kiểm soát (Med/Mod/Controls)",
+        "Phương pháp & Thang đo gợi ý"
+      ];
+      const rows = state.varRows.map((r) => [r.meta, r.yVar, r.xVar, r.medModVar, r.methodScale]);
+      exportRowsToExcel(headers, rows, "FBRH_Khung_Bien_Chi_Tieu.xlsx", "Khung_Bien");
+    });
+  }
+
+  if (els.varFrameworkBody) {
+    els.varFrameworkBody.addEventListener("input", (e) => {
+      const tr = e.target.closest("tr");
+      const field = e.target.dataset.varField;
+      if (!tr || !field) return;
+      const rowIdx = Number(tr.dataset.varRow);
+      if (state.varRows[rowIdx]) {
+        state.varRows[rowIdx][field] = e.target.value;
+        saveState();
+      }
+    });
+
+    els.varFrameworkBody.addEventListener("click", (e) => {
+      const delBtn = e.target.closest(".btn-del-var-row");
+      if (!delBtn) return;
+      const rowIdx = Number(delBtn.dataset.varRow);
+      if (!Number.isNaN(rowIdx) && state.varRows.length > 1) {
+        state.varRows.splice(rowIdx, 1);
+        renderVarFramework();
+        saveState();
+        showToast("Đã xóa dòng khung biến");
+      }
+    });
+  }
+
   // Boot sequence
   loadSavedState();
   els.topicInput.value = state.topic;
@@ -1182,7 +1401,8 @@
 
   setOrientation(state.orientation);
   renderSteps();
-  renderVariableFramework();
+  renderPrompts();
   renderMatrix();
+  renderVarFramework();
   setActiveTab(state.activeTab);
 })();
