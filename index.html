@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FBRH — Research Workbench &amp; Automation Hub (v2.4)</title>
-  <link rel="stylesheet" href="styles.css?v=2.4" />
+  <title>FBRH — Research Workbench &amp; Automation Hub (v2.5)</title>
+  <link rel="stylesheet" href="styles.css?v=2.5" />
 </head>
 <body>
   <header class="topbar">
@@ -12,7 +12,7 @@
       <div class="brand-block">
         <div class="top-badges">
           <span class="badge-tag">FBRH · TCNH &amp; QTKD</span>
-          <span class="version-pill" id="appVersionBadge">v2.4 · Auto-Sync Ready</span>
+          <span class="version-pill" id="appVersionBadge">v2.5 · Export Ready</span>
         </div>
         <h1>RESEARCH WORKBENCH &amp; AUTOMATION HUB — TÀI CHÍNH, NGÂN HÀNG &amp; QTKD</h1>
         <p class="subtitle">
@@ -58,19 +58,30 @@
         <span id="syncStatusText" class="sync-status">Đang dùng dữ liệu tích hợp + localStorage</span>
       </div>
 
-      <div id="multiExportPanel" class="multi-export-panel" hidden>
-        <span class="multi-export-title">Chọn định dạng:</span>
-        <label class="export-opt"><input type="checkbox" id="expOptWord" value="word" checked /> Word (.doc)</label>
-        <label class="export-opt"><input type="checkbox" id="expOptPdf" value="pdf" /> PDF (In/Lưu PDF)</label>
-        <label class="export-opt"><input type="checkbox" id="expOptTxt" value="txt" checked /> Text (.txt)</label>
-        <label class="export-opt"><input type="checkbox" id="expOptMd" value="md" checked /> Markdown (.md)</label>
-        <label class="export-opt"><input type="checkbox" id="expOptJson" value="json" /> JSON (.json)</label>
-        <select id="expScopeSelect" aria-label="Chọn phạm vi xuất">
-          <option value="all">Toàn bộ dự án</option>
-          <option value="matrix">Chỉ bảng LR Matrix</option>
-          <option value="varframework">Chỉ Khung biến / Chỉ tiêu</option>
-        </select>
-        <button type="button" id="runMultiExportBtn" class="btn-accent">Tải các định dạng đã chọn</button>
+      <div id="multiExportPanel" class="multi-export-panel">
+        <div class="multi-export-head">
+          <span class="multi-export-title">Chọn 1, 2, 3 hoặc cả 4 định dạng (hoặc JSON):</span>
+          <div class="preset-combo-btns">
+            <button type="button" class="btn-mini" id="presetPick4Btn">Chọn cả 4 (Word/PDF/TXT/MD)</button>
+            <button type="button" class="btn-mini" id="presetPickDocPdfBtn">Word + PDF</button>
+            <button type="button" class="btn-mini" id="presetPickTxtMdBtn">TXT + MD</button>
+          </div>
+        </div>
+        <div class="multi-export-checks">
+          <label class="export-opt"><input type="checkbox" id="expOptWord" value="word" checked /> Word (.doc)</label>
+          <label class="export-opt"><input type="checkbox" id="expOptPdf" value="pdf" checked /> PDF (In/Lưu PDF)</label>
+          <label class="export-opt"><input type="checkbox" id="expOptTxt" value="txt" checked /> Text (.txt)</label>
+          <label class="export-opt"><input type="checkbox" id="expOptMd" value="md" checked /> Markdown (.md)</label>
+          <label class="export-opt"><input type="checkbox" id="expOptJson" value="json" /> JSON (.json)</label>
+        </div>
+        <div class="multi-export-actions">
+          <select id="expScopeSelect" aria-label="Chọn phạm vi xuất">
+            <option value="all">Toàn bộ dự án</option>
+            <option value="matrix">Chỉ bảng LR Matrix</option>
+            <option value="varframework">Chỉ Khung biến / Chỉ tiêu</option>
+          </select>
+          <button type="button" id="runMultiExportBtn" class="btn-accent">Tải các định dạng đã chọn</button>
+        </div>
       </div>
     </div>
   </header>
@@ -242,7 +253,7 @@
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script src="data_lr.js?v=2.4"></script>
-  <script src="app.js?v=2.4"></script>
+  <script src="data_lr.js?v=2.5"></script>
+  <script src="app.js?v=2.5"></script>
 </body>
 </html>
