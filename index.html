@@ -3,331 +3,139 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Research Hub | Thạc sĩ Nghiên cứu Tài chính - Ngân hàng</title>
+  <title>FBRH — Research Workbench Tài chính &amp; Ngân hàng</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="topbar">
-    <div class="topbar-inner">
-      <div class="brand">
+    <div class="container topbar-inner">
+      <div class="brand-block">
+        <span class="badge-tag">FBRH · TCNH</span>
         <h1>RESEARCH WORKBENCH — TÀI CHÍNH &amp; NGÂN HÀNG (THẠC SĨ ĐỊNH HƯỚNG NGHIÊN CỨU)</h1>
-        <p>Sổ tay 20 Bước · Kho 6 Hướng nghiên cứu TCNH (Biến – Mô hình – Scopus Query) · Prompt ChatGPT &amp; NotebookLM · LR Matrix</p>
+        <p class="subtitle">
+          Sổ tay 20 Bước · Kho Hướng nghiên cứu &amp; Ứng dụng TCNH (Biến – Mô hình – Dữ liệu – Scopus Query) · Prompt ChatGPT &amp; NotebookLM · LR Matrix
+        </p>
       </div>
-      <div class="quick-ctx">
-        <select id="quickTrackSelect" title="Chọn nhanh hướng nghiên cứu TCNH để nạp ngữ cảnh">
-          <option value="">-- Nạp nhanh hướng nghiên cứu TCNH --</option>
+
+      <div class="orientation-bar" role="group" aria-label="Chọn định hướng">
+        <span class="orientation-label">Định hướng:</span>
+        <button type="button" class="orient-btn active" data-orientation="research">
+          Nghiên cứu (Research)
+        </button>
+        <button type="button" class="orient-btn" data-orientation="applied">
+          Ứng dụng (Applied)
+        </button>
+      </div>
+
+      <div class="quick-controls">
+        <select id="presetSelect" aria-label="Nạp nhanh hướng TCNH">
+          <option value="">-- Nạp nhanh hướng nghiên cứu / ứng dụng TCNH --</option>
         </select>
-        <input type="text" id="ctxTopic" placeholder="Tên đề tài / Mô hình..." />
-        <input type="text" id="ctxRQ" placeholder="Câu hỏi nghiên cứu (RQ)..." />
-        <input type="text" id="ctxProblem" placeholder="Mô tả vấn đề / Bối cảnh..." />
+        <button type="button" id="resetBtn" class="btn-secondary">Làm mới</button>
+      </div>
+
+      <div class="meta-inputs">
+        <input id="topicInput" type="text" placeholder="Tên đề tài / Mô hình..." />
+        <input id="rqInput" type="text" placeholder="Câu hỏi nghiên cứu (RQ) / Bài toán trọng tâm..." />
+        <input id="contextInput" type="text" placeholder="Mô tả vấn đề / Bối cảnh / Dữ liệu..." />
       </div>
     </div>
   </header>
 
-  <nav class="tabs" role="tablist">
-    <div class="tabs-inner">
-      <button class="tab-btn active" data-tab="finance-tracks">1. Hướng nghiên cứu TCNH (Biến &amp; Mô hình)</button>
-      <button class="tab-btn" data-tab="handbook">2. Sổ tay 20 Bước &amp; Quy trình</button>
-      <button class="tab-btn" data-tab="prompts">3. Bộ Prompt (ChatGPT &amp; NotebookLM)</button>
-      <button class="tab-btn" data-tab="scopus">4. Scopus Search &amp; Evidence</button>
-      <button class="tab-btn" data-tab="lr-matrix">5. Literature Review Matrix</button>
-      <button class="tab-btn" data-tab="logs-checklists">6. Nhật ký, Sàng lọc &amp; Checklist</button>
-      <button class="tab-btn" data-tab="resources">7. Công cụ &amp; Tài liệu</button>
+  <nav class="tabbar-wrap" aria-label="Điều hướng phân khu">
+    <div class="container">
+      <div class="tabbar" role="tablist">
+        <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="library">
+          1. Thư viện &amp; Nạp nhanh TCNH
+        </button>
+        <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="handbook">
+          2. Sổ tay 20 Bước
+        </button>
+        <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="prompts">
+          3. Prompt ChatGPT &amp; NotebookLM
+        </button>
+        <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="lrmatrix">
+          4. LR Matrix &amp; Khung biến
+        </button>
+      </div>
     </div>
   </nav>
 
-  <main class="container">
-    <!-- TAB 1: FINANCE & BANKING TRACKS -->
-    <section id="finance-tracks" class="tab-panel active">
-      <div class="card">
-        <h2>Thư viện 6 Hướng nghiên cứu chuyên ngành Tài chính – Ngân hàng (Chọn &amp; Nạp 1 chạm)</h2>
-        <p>Khi chưa chốt hướng nghiên cứu cụ thể, bạn có thể duyệt qua <strong>6 mảng nghiên cứu trọng tâm</strong> của Thạc sĩ định hướng nghiên cứu ngành Tài chính – Ngân hàng bên dưới. Mỗi hướng đã chuẩn bị sẵn: <em>Vấn đề &amp; Câu hỏi nghiên cứu gợi ý, Bộ biến (Phụ thuộc – Độc lập – Trung gian – Điều tiết – Kiểm soát), Lý thuyết nền, Phương pháp kinh tế lượng/định lượng, Dữ liệu &amp; Chuỗi Scopus Advanced Search</em>.</p>
-        <div class="finance-note">
-          <strong>Lưu ý phương pháp luận (theo Sổ tay):</strong> Toàn bộ tên đề tài, mô hình và chuỗi tìm kiếm trong thư viện này là <em>phương án khởi đầu / ví dụ minh họa</em> để bạn chạy khám phá &amp; Literature Audit trên Scopus/NotebookLM — không coi là Research Gap đã xác nhận trước khi kiểm toán nguồn thực tế.
-        </div>
-        <div class="controls" id="trackPillsContainer"></div>
-        <div id="trackDetailContainer"></div>
-      </div>
-    </section>
-
-    <!-- TAB 2: HANDBOOK -->
-    <section id="handbook" class="tab-panel">
-      <div class="card">
-        <h2>Nguyên tắc phương pháp luận &amp; Bản đồ 5 Giai đoạn (20 Bước)</h2>
-        <p>Quy trình nghiên cứu khoa học tích hợp AI có tính lặp lại: <strong>AI hỗ trợ khám phá và xử lý; nhà nghiên cứu kiểm chứng, lựa chọn và chịu trách nhiệm học thuật</strong>.</p>
-        <div class="controls">
-          <input type="text" id="handbookSearch" placeholder="Tìm kiếm bước, khái niệm, điểm kiểm soát..." style="flex:1; min-width:240px;" />
-          <select id="stageFilter">
-            <option value="ALL">Tất cả giai đoạn / phần</option>
-            <option value="PHẦN 1">Phần 1 – Nguyên tắc &amp; 5 loại phát biểu</option>
-            <option value="GIAI ĐOẠN 1">Giai đoạn 1 – Ý tưởng &amp; RQ sơ bộ (Bước 1–3)</option>
-            <option value="GIAI ĐOẠN 2">Giai đoạn 2 – Từ khóa &amp; Scopus (Bước 4–5)</option>
-            <option value="GIAI ĐOẠN 3">Giai đoạn 3 – Sàng lọc, Metadata &amp; NotebookLM (Bước 6–9)</option>
-            <option value="CHỐT ĐỀ TÀI">Chốt đề tài, RQ &amp; Mục tiêu (Bước 10)</option>
-            <option value="LÝ THUYẾT & LR">Lý thuyết, Mô hình, Giả thuyết &amp; LR (Bước 11–13)</option>
-            <option value="PHƯƠNG PHÁP">Thiết kế phương pháp &amp; Triển khai (Bước 14–20)</option>
-          </select>
-        </div>
-        <div id="handbookList"></div>
-      </div>
-
-      <div class="card">
-        <h2>Phân biệt 5 loại phát biểu (Thuật ngữ chuẩn trong sổ tay &amp; Prompt cài đặt)</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Loại phát biểu</th>
-                <th>Ý nghĩa</th>
-                <th>Ví dụ trong sổ tay / Nguyên tắc kiểm soát</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>1. Dữ kiện đã xác minh</strong></td>
-                <td>Có thể truy về nguồn cụ thể, kiểm chứng trực tiếp.</td>
-                <td>Scopus hỗ trợ <code>TITLE-ABS-KEY</code> trong Advanced Search; số liệu báo cáo tài chính/DOI đã mở kiểm tra.</td>
-              </tr>
-              <tr>
-                <td><strong>2. Bằng chứng nghiên cứu</strong></td>
-                <td>Kết quả được báo cáo trong một nghiên cứu cụ thể.</td>
-                <td>Một bài báo báo cáo mối liên hệ giữa cách dùng AI và kết quả học tập, hoặc giữa cấu trúc vốn và rủi ro vỡ nợ.</td>
-              </tr>
-              <tr>
-                <td><strong>3. Suy luận</strong></td>
-                <td>Kết luận logic từ nhiều bằng chứng, cần nêu giới hạn.</td>
-                <td>Cần phân biệt tần suất sử dụng với định hướng sử dụng; đánh giá mức độ khái quát và thiên lệch.</td>
-              </tr>
-              <tr>
-                <td><strong>4. Giả thuyết / Ý kiến / Dự đoán</strong></td>
-                <td>Mệnh đề cần kiểm định (giả thuyết), đánh giá/quan điểm (ý kiến), hoặc kỳ vọng tương lai (dự đoán).</td>
-                <td>Không trình bày giả thuyết, ý kiến hay dự đoán như chân lý đã được chứng minh.</td>
-              </tr>
-              <tr>
-                <td><strong>5. Ví dụ minh họa</strong></td>
-                <td>Tình huống/mẫu minh họa quy trình, không phải phát hiện thực nghiệm.</td>
-                <td>Đề tài mẫu "GenAI và tư duy phản biện của sinh viên Học viện ABC" hoặc các mô hình gợi ý TCNH.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 3: PROMPTS -->
-    <section id="prompts" class="tab-panel">
-      <div class="card">
-        <h2>Prompt cài đặt hệ thống (ChatGPT &amp; NotebookLM)</h2>
-        <p>Chọn nhanh hướng nghiên cứu TCNH hoặc nhập ở thanh trên cùng để tự động điền vào các vị trí <code>[DÁN ...]</code> trong toàn bộ prompt bên dưới.</p>
-        <div id="systemPromptsContainer"></div>
-      </div>
-
-      <div class="card">
-        <h2>Bộ Prompt theo từng bước trong Sổ tay (2.1 → 13.3)</h2>
-        <div class="controls">
-          <input type="text" id="promptSearch" placeholder="Lọc prompt theo mã hoặc nội dung (ví dụ: 9.7, Gap, Mô hình, Trích dẫn)..." style="flex:1; min-width:260px;" />
-        </div>
-        <div id="stepPromptsContainer"></div>
-      </div>
-    </section>
-
-    <!-- TAB 4: SCOPUS & EVIDENCE -->
-    <section id="scopus" class="tab-panel">
-      <div class="card">
-        <h2>Scopus Advanced Search – Toán tử, Mã trường &amp; Bộ chuỗi tìm kiếm</h2>
-        <p>Luôn dùng dấu ngoặc kép thẳng ASCII (<code>"..."</code>), kiểm soát ngoặc nhóm <code>OR</code> / <code>AND</code>, và ghi nhật ký trước/sau khi chạy.</p>
-        <div class="table-wrap" style="margin-bottom:16px;">
-          <table>
-            <thead>
-              <tr>
-                <th>Cú pháp / Mã trường</th>
-                <th>Ý nghĩa</th>
-                <th>Ví dụ</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td><code>AND</code></td><td>Cả hai nhóm phải xuất hiện</td><td><code>GenAI AND students</code></td></tr>
-              <tr><td><code>OR</code></td><td>Ít nhất một thuật ngữ xuất hiện (dùng cho từ đồng nghĩa)</td><td><code>ChatGPT OR "generative AI"</code></td></tr>
-              <tr><td><code>AND NOT</code></td><td>Loại trừ nhóm không mong muốn (dùng thận trọng)</td><td><code>AI AND NOT robotics</code></td></tr>
-              <tr><td><code>TITLE-ABS-KEY()</code></td><td>Tìm trong tiêu đề, tóm tắt và từ khóa</td><td><code>TITLE-ABS-KEY("critical thinking")</code></td></tr>
-              <tr><td><code>W/n</code></td><td>Hai thuật ngữ nằm trong khoảng n từ, không cố định thứ tự</td><td><code>AI W/3 learning</code></td></tr>
-              <tr><td><code>PRE/n</code></td><td>Thuật ngữ thứ nhất đứng trước thuật ngữ thứ hai trong khoảng n từ</td><td><code>critical PRE/2 thinking</code></td></tr>
-              <tr><td><code>PUBYEAR</code></td><td>Giới hạn năm xuất bản</td><td><code>PUBYEAR &gt; 2020</code></td></tr>
-              <tr><td><code>DOCTYPE(ar)</code></td><td>Giới hạn loại tài liệu là article</td><td><code>DOCTYPE(ar)</code></td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="controls">
-          <select id="scopusGroupFilter">
-            <option value="ALL">Tất cả chuỗi tìm kiếm (Sổ tay gốc + Chuyên ngành TCNH)</option>
-            <option value="HANDBOOK">Chuỗi gốc trong Sổ tay (String A → E)</option>
-            <option value="FINANCE">Chuỗi chuyên ngành Tài chính – Ngân hàng (6 hướng)</option>
-          </select>
-        </div>
-        <div id="scopusStringsContainer"></div>
-      </div>
-
-      <div class="card">
-        <h2>Nhóm nguồn NotebookLM (01 → 06), Evidence Matrix &amp; 5 loại Research Gap</h2>
-        <div class="grid-2">
+  <main class="container main-content">
+    <section id="tab-library" class="tab-panel active" role="tabpanel">
+      <div class="card intro-banner">
+        <div class="intro-head">
           <div>
-            <h3>6 Nhóm nguồn trong NotebookLM</h3>
-            <ul>
-              <li><strong>01 Metadata:</strong> CSV/Excel xuất từ Scopus và các cơ sở dữ liệu.</li>
-              <li><strong>02 Foundational:</strong> Nghiên cứu kinh điển, lý thuyết gốc, khái niệm nền tảng.</li>
-              <li><strong>03_Empirical:</strong> Nghiên cứu thực nghiệm trực tiếp liên quan.</li>
-              <li><strong>04 Measurement:</strong> Nghiên cứu phát triển/kiểm định thang đo.</li>
-              <li><strong>05_Contradictory:</strong> Nghiên cứu có kết quả khác biệt hoặc trái chiều.</li>
-              <li><strong>06_Methodology:</strong> Tài liệu phương pháp và thiết kế nghiên cứu.</li>
-            </ul>
-            <p><strong>Quy tắc tệp (Bước 7.1):</strong> Đặt tên <code>FirstAuthor_Year_ShortTitle.pdf</code>; lưu bảng master có DOI &amp; mã ID; chống trùng bằng DOI, tiêu đề, tác giả; ghi rõ <em>metadata-only / abstract-only / full text</em>.</p>
+            <h2 id="libraryTitle">Thư viện Hướng nghiên cứu chuyên ngành Tài chính – Ngân hàng (Chọn &amp; Nạp 1 chạm)</h2>
+            <p id="libraryDesc">
+              Chọn một mẫu bên dưới hoặc trên menu nạp nhanh để tự động điền đề tài, RQ, bối cảnh và gợi ý phương pháp/truy vấn.
+            </p>
           </div>
+          <span id="orientationPill" class="orient-pill">Đang chọn: Nghiên cứu</span>
+        </div>
+      </div>
+
+      <div id="presetGrid" class="preset-grid"></div>
+    </section>
+
+    <section id="tab-handbook" class="tab-panel" role="tabpanel" hidden>
+      <div class="card">
+        <div class="card-header-row">
           <div>
-            <h3>5 Loại Research Gap (Mục 9.2)</h3>
-            <ul>
-              <li><strong>Theoretical gap:</strong> Cơ chế/hiện tượng chưa được lý thuyết hiện tại giải thích đầy đủ.</li>
-              <li><strong>Empirical gap:</strong> Bằng chứng thực nghiệm còn ít, không nhất quán hoặc chưa kiểm tra mối quan hệ cụ thể.</li>
-              <li><strong>Methodological gap:</strong> Thiết kế, dữ liệu hoặc cách phân tích trước có giới hạn làm giảm khả năng kết luận.</li>
-              <li><strong>Contextual gap:</strong> Bằng chứng ở bối cảnh/nhóm đối tượng cụ thể còn hạn chế; giải thích vì sao bối cảnh có ý nghĩa.</li>
-              <li><strong>Measurement gap:</strong> Khái niệm hoặc thang đo chưa nhất quán, chưa phù hợp hoặc thiếu kiểm định trong bối cảnh liên quan.</li>
-            </ul>
+            <h2>Sổ tay 20 Bước triển khai đề tài Tài chính – Ngân hàng</h2>
+            <p class="muted">Bấm "Copy" ở từng bước để dán nhanh vào ghi chú hoặc prompt làm việc.</p>
+          </div>
+          <button type="button" id="copyAllStepsBtn" class="btn-primary">Copy toàn bộ 20 bước</button>
+        </div>
+        <div id="stepsList" class="steps-list"></div>
+      </div>
+    </section>
+
+    <section id="tab-prompts" class="tab-panel" role="tabpanel" hidden>
+      <div class="card">
+        <div class="card-header-row">
+          <div>
+            <h2>Bộ Prompt mẫu cho ChatGPT &amp; NotebookLM</h2>
+            <p class="muted">Tự động chèn tên đề tài, RQ và bối cảnh bạn vừa nhập/nạp ở phía trên.</p>
           </div>
         </div>
-        <h3>Cấu trúc Literature Review tham khảo (Bước 13)</h3>
-        <p><strong>2.1. Theoretical Background</strong> (Lý thuyết nền tảng &amp; khái niệm cốt lõi) → <strong>2.2. Related Research</strong> (Các dòng nghiên cứu, kết quả, thống nhất &amp; trái chiều) → <strong>2.3. Research Gap and Conceptual Framework</strong> (Khoảng trống có bằng chứng &amp; mô hình) → <strong>2.4. Hypothesis Development</strong> (Lập luận từng quan hệ &amp; giả thuyết).</p>
+        <div id="promptsList" class="prompts-list"></div>
       </div>
     </section>
 
-    <!-- TAB 5: LITERATURE REVIEW MATRIX -->
-    <section id="lr-matrix" class="tab-panel">
+    <section id="tab-lrmatrix" class="tab-panel" role="tabpanel" hidden>
       <div class="card">
-        <h2>Ma trận tổng quan nghiên cứu (Literature Review Matrix — 13 cột chuẩn)</h2>
-        <p>Đã nạp sẵn dữ liệu từ <code>LITERATURE REVIEW.xlsx</code> (bao gồm nghiên cứu mẫu Schuitema et al., 2024 và các dòng STT 1–23). Dữ liệu bạn thêm hoặc sửa sẽ tự động lưu vào trình duyệt (<code>localStorage</code>) và có thể xuất CSV.</p>
-        <div class="controls">
-          <input type="text" id="lrFilter" placeholder="Tìm theo tên nghiên cứu, tác giả, biến, lý thuyết, phương pháp..." style="flex:1; min-width:240px;" />
-          <button class="btn" id="addLrRowBtn">+ Thêm dòng nghiên cứu</button>
-          <button class="btn teal" id="exportLrCsvBtn">Xuất CSV</button>
-          <button class="btn secondary" id="resetLrBtn">Khôi phục bản gốc Excel</button>
+        <div class="card-header-row">
+          <div>
+            <h2>Literature Review Matrix &amp; Khung biến / Chỉ tiêu</h2>
+            <p class="muted">Thêm dòng mới hoặc copy nhanh bảng tóm tắt tài liệu / biến số.</p>
+          </div>
+          <div class="btn-group">
+            <button type="button" id="addRowBtn" class="btn-secondary">+ Thêm dòng</button>
+            <button type="button" id="copyMatrixBtn" class="btn-primary">Copy bảng (TSV)</button>
+          </div>
         </div>
-        <div class="table-wrap">
-          <table id="lrTable">
+
+        <div class="table-scroll">
+          <table class="matrix-table" id="matrixTable">
             <thead>
               <tr>
-                <th>STT</th>
-                <th>Tên file đã lưu</th>
-                <th>Tên nghiên cứu</th>
-                <th>Tác giả</th>
-                <th>Quốc gia</th>
-                <th>Biến độc lập</th>
-                <th>Biến trung gian</th>
-                <th>Biến điều tiết</th>
-                <th>Biến phụ thuộc</th>
-                <th>Lý thuyết nền</th>
-                <th>Phương pháp</th>
-                <th>Đóng góp chính (KQNC)</th>
-                <th>Hạn chế nghiên cứu</th>
-                <th>Thao tác</th>
+                <th>Tác giả (Năm)</th>
+                <th>Mục tiêu / Bối cảnh</th>
+                <th>Biến / Chỉ tiêu chính</th>
+                <th>Phương pháp / Công cụ</th>
+                <th>Kết quả &amp; Khoảng trống / Ứng dụng</th>
+                <th>Xóa</th>
               </tr>
             </thead>
-            <tbody id="lrTableBody"></tbody>
+            <tbody id="matrixBody"></tbody>
           </table>
         </div>
-      </div>
-    </section>
-
-    <!-- TAB 6: LOGS & CHECKLISTS -->
-    <section id="logs-checklists" class="tab-panel">
-      <div class="grid-2">
-        <div class="card">
-          <h2>8.1. Checklist trước khi chốt đề tài</h2>
-          <div id="topicChecklist"></div>
-        </div>
-        <div class="card">
-          <h2>8.2. Checklist kiểm soát rủi ro AI</h2>
-          <div id="aiRiskChecklist"></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>8.3. Mẫu nhật ký tìm kiếm (Search Log)</h2>
-        <div class="controls">
-          <button class="btn small" id="addSearchLogBtn">+ Thêm dòng nhật ký</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Ngày</th>
-                <th>Database</th>
-                <th>Search string ID</th>
-                <th>Bộ lọc</th>
-                <th>Số kết quả</th>
-                <th>Người thực hiện / ghi chú</th>
-              </tr>
-            </thead>
-            <tbody id="searchLogBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>8.4. Mẫu quyết định sàng lọc (Screening Log)</h2>
-        <div class="controls">
-          <button class="btn small" id="addScreeningLogBtn">+ Thêm bài sàng lọc</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Mã bài</th>
-                <th>Tiêu đề</th>
-                <th>Title/Abstract</th>
-                <th>Full text</th>
-                <th>Quyết định</th>
-                <th>Lý do</th>
-              </tr>
-            </thead>
-            <tbody id="screeningLogBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 7: RESOURCES -->
-    <section id="resources" class="tab-panel">
-      <div class="card">
-        <h2>8.5. Tài liệu và liên kết công cụ</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Nguồn / Công cụ</th>
-                <th>Địa chỉ</th>
-                <th>Vai trò trong quy trình</th>
-              </tr>
-            </thead>
-            <tbody id="toolsTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>8.6. Tài liệu phương pháp luận nền tảng</h2>
-        <p>Kiểm tra ấn bản và thông tin thư mục của bản thực tế sử dụng:</p>
-        <ul>
-          <li>Creswell, J. W., &amp; Creswell, J. D. (2018). <em>Research design: Qualitative, quantitative, and mixed methods approaches</em> (5th ed.). SAGE Publications.</li>
-          <li>Page, M. J., McKenzie, J. E., Bossuyt, P. M., Boutron, I., Hoffmann, T. C., Shamseer, L., Tetzlaff, J. M., Akl, E. A., Brennan, S. E., Chou, R., Glanville, J., Grimshaw, J. M., Hróbjartsson, A., Lalu, M. M., Li, T., Loder, E. W., Mayo-Wilson, E., McDonald, S., &amp; Moher, D. (2021). The PRISMA 2020 statement: An updated guideline for reporting systematic reviews. <em>BMJ</em>, 372, Article n71. https://doi.org/10.1136/bmj.n71</li>
-          <li>Saunders, M., Lewis, P., &amp; Thornhill, A. (2019). <em>Research methods for business students</em> (8th ed.). Pearson.</li>
-          <li>Snyder, H. (2019). Literature review as a research methodology: An overview and guidelines. <em>Journal of Business Research</em>, 104, 333–339. https://doi.org/10.1016/j.jbusres.2019.07.039</li>
-          <li>Xiao, Y., &amp; Watson, M. (2019). Guidance on conducting a systematic literature review. <em>Journal of Planning Education and Research</em>, 39(1), 93–112. https://doi.org/10.1177/0739456X17723971</li>
-        </ul>
       </div>
     </section>
   </main>
 
-  <footer>
-    Research Workbench (Tài chính - Ngân hàng) · Tích hợp Sổ tay thực hành (Đặng Văn Phong, 10/11/2026), Prompt cài đặt ChatGPT &amp; NotebookLM, và LITERATURE REVIEW.xlsx.
-  </footer>
+  <div id="toast" class="toast" aria-live="polite">Đã copy</div>
 
   <script src="app.js"></script>
 </body>
