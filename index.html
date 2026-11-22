@@ -3,17 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FBRH — Research Workbench Tài chính &amp; Ngân hàng</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>FBRH — Research Workbench &amp; Automation Hub (v2.1)</title>
+  <link rel="stylesheet" href="styles.css?v=2.1" />
 </head>
 <body>
   <header class="topbar">
     <div class="container topbar-inner">
       <div class="brand-block">
-        <span class="badge-tag">FBRH · TCNH</span>
-        <h1>RESEARCH WORKBENCH — TÀI CHÍNH &amp; NGÂN HÀNG (THẠC SĨ ĐỊNH HƯỚNG NGHIÊN CỨU)</h1>
+        <div class="top-badges">
+          <span class="badge-tag">FBRH · TCNH &amp; QTKD</span>
+          <span class="version-pill" id="appVersionBadge">v2.1 · Auto-Sync Ready</span>
+        </div>
+        <h1>RESEARCH WORKBENCH &amp; AUTOMATION HUB — TÀI CHÍNH, NGÂN HÀNG &amp; QTKD</h1>
         <p class="subtitle">
-          Sổ tay 20 Bước · Kho Hướng nghiên cứu &amp; Ứng dụng TCNH (Biến – Mô hình – Dữ liệu – Scopus Query) · Prompt ChatGPT &amp; NotebookLM · LR Matrix
+          Tự động hóa 20 Bước · Kho 30 Chủ đề QTKD &amp; TCNH · Prompt Lab (Tóm tắt, LR, Dịch, Slide, APA/IEEE, Turnitin) · Auto LR Matrix &amp; Khung biến (GitHub `longtr99/research-workflow`)
         </p>
       </div>
 
@@ -25,19 +28,33 @@
         <button type="button" class="orient-btn" data-orientation="applied">
           Ứng dụng (Applied)
         </button>
+        <button type="button" class="orient-btn" data-orientation="qtkd30">
+          30 Chủ đề QTKD &amp; AI
+        </button>
       </div>
 
       <div class="quick-controls">
-        <select id="presetSelect" aria-label="Nạp nhanh hướng TCNH">
-          <option value="">-- Nạp nhanh hướng nghiên cứu / ứng dụng TCNH --</option>
+        <select id="presetSelect" aria-label="Nạp nhanh hướng nghiên cứu / chủ đề">
+          <option value="">-- Nạp nhanh đề tài / bài toán mẫu --</option>
         </select>
+        <button type="button" id="autoRunAllBtn" class="btn-accent">Chạy tự động 20 bước</button>
         <button type="button" id="resetBtn" class="btn-secondary">Làm mới</button>
       </div>
 
       <div class="meta-inputs">
-        <input id="topicInput" type="text" placeholder="Tên đề tài / Mô hình..." />
+        <input id="topicInput" type="text" placeholder="Tên đề tài / Mô hình / Chủ đề..." />
         <input id="rqInput" type="text" placeholder="Câu hỏi nghiên cứu (RQ) / Bài toán trọng tâm..." />
-        <input id="contextInput" type="text" placeholder="Mô tả vấn đề / Bối cảnh / Dữ liệu..." />
+        <input id="contextInput" type="text" placeholder="Bối cảnh / Dữ liệu / Biến &amp; Phương pháp..." />
+      </div>
+
+      <div class="data-toolbar">
+        <label class="file-upload-btn" for="customDataFile">
+          Nạp file dữ liệu (.csv / .xlsx / .json / .txt / .md)
+          <input type="file" id="customDataFile" accept=".csv,.xlsx,.xls,.json,.txt,.md" hidden />
+        </label>
+        <button type="button" id="syncGithubBtn" class="btn-secondary">Đồng bộ GitHub (research-workflow)</button>
+        <button type="button" id="exportProjectBtn" class="btn-secondary">Xuất JSON dự án</button>
+        <span id="syncStatusText" class="sync-status">Đang dùng dữ liệu tích hợp + localStorage</span>
       </div>
     </div>
   </header>
@@ -46,16 +63,16 @@
     <div class="container">
       <div class="tabbar" role="tablist">
         <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="library">
-          1. Thư viện &amp; Nạp nhanh TCNH
+          1. Thư viện &amp; 30 Chủ đề
         </button>
         <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="handbook">
-          2. Sổ tay 20 Bước
+          2. Sổ tay 20 Bước (Tùy chỉnh &amp; Tự động)
         </button>
         <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="prompts">
-          3. Prompt ChatGPT &amp; NotebookLM
+          3. Prompt &amp; Quy trình tự động hóa
         </button>
         <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="lrmatrix">
-          4. LR Matrix &amp; Khung biến
+          4. LR Matrix &amp; Khung biến (Auto)
         </button>
       </div>
     </div>
@@ -66,9 +83,9 @@
       <div class="card intro-banner">
         <div class="intro-head">
           <div>
-            <h2 id="libraryTitle">Thư viện Hướng nghiên cứu chuyên ngành Tài chính – Ngân hàng (Chọn &amp; Nạp 1 chạm)</h2>
-            <p id="libraryDesc">
-              Chọn một mẫu bên dưới hoặc trên menu nạp nhanh để tự động điền đề tài, RQ, bối cảnh và gợi ý phương pháp/truy vấn.
+            <h2 id="libraryTitle">Thư viện Hướng nghiên cứu chuyên ngành Tài chính – Ngân hàng</h2>
+            <p id="libraryDesc" class="muted">
+              Chọn 1 chạm để nạp vào Workbench, tự động sinh Khung biến / Chỉ tiêu và cập nhật toàn bộ 20 bước + Prompt.
             </p>
           </div>
           <span id="orientationPill" class="orient-pill">Đang chọn: Nghiên cứu</span>
@@ -82,11 +99,24 @@
       <div class="card">
         <div class="card-header-row">
           <div>
-            <h2>Sổ tay 20 Bước triển khai đề tài Tài chính – Ngân hàng</h2>
-            <p class="muted">Bấm "Copy" ở từng bước để dán nhanh vào ghi chú hoặc prompt làm việc.</p>
+            <h2>Sổ tay 20 Bước — Xử lý từng bước tùy chỉnh hoặc chạy tự động</h2>
+            <p class="muted">Sửa trực tiếp từng bước, bấm "Chạy bước này" để tạo kết quả riêng cho bước đó, hoặc "Chạy tự động 20 bước".</p>
           </div>
-          <button type="button" id="copyAllStepsBtn" class="btn-primary">Copy toàn bộ 20 bước</button>
+          <div class="btn-group">
+            <button type="button" id="runAllStepsBtn" class="btn-primary">Chạy tự động 20 bước</button>
+            <button type="button" id="copyAllStepsBtn" class="btn-secondary">Copy 20 bước</button>
+          </div>
         </div>
+
+        <div class="custom-data-box">
+          <div class="item-top">
+            <span class="item-title">Dữ liệu đầu vào tùy chỉnh (nạp từ file hoặc dán trực tiếp để chạy 20 bước)</span>
+            <button type="button" id="applyCustomInputBtn" class="btn-copy">Áp dụng dữ liệu vào 20 bước</button>
+          </div>
+          <textarea id="customDataTextarea" rows="3" placeholder="Dán tóm tắt tài liệu, ghi chú khảo sát, dữ liệu biến số hoặc nội dung chương để chạy tự động 20 bước..."></textarea>
+        </div>
+
+        <div id="autoPipelineOutput" class="pipeline-box" hidden></div>
         <div id="stepsList" class="steps-list"></div>
       </div>
     </section>
@@ -95,8 +125,8 @@
       <div class="card">
         <div class="card-header-row">
           <div>
-            <h2>Bộ Prompt mẫu cho ChatGPT &amp; NotebookLM</h2>
-            <p class="muted">Tự động chèn tên đề tài, RQ và bối cảnh bạn vừa nhập/nạp ở phía trên.</p>
+            <h2>Bộ Prompt &amp; Trình tạo lệnh tự động hóa theo tài liệu</h2>
+            <p class="muted">Luôn có sẵn đầy đủ mẫu gốc kèm nút Copy; khi có tên đề tài sẽ tự động hiện thêm khối đã gắn tên đề tài kèm nút Copy riêng.</p>
           </div>
         </div>
         <div id="promptsList" class="prompts-list"></div>
@@ -107,21 +137,30 @@
       <div class="card">
         <div class="card-header-row">
           <div>
-            <h2>Literature Review Matrix &amp; Khung biến / Chỉ tiêu</h2>
-            <p class="muted">Thêm dòng mới hoặc copy nhanh bảng tóm tắt tài liệu / biến số.</p>
+            <h2>Literature Review Matrix &amp; Khung biến / Chỉ tiêu (Tự động nhảy dữ liệu)</h2>
+            <p class="muted" id="lrStatsText">Đang tổng hợp dữ liệu từ tệp đính kèm và GitHub `longtr99/research-workflow`...</p>
           </div>
           <div class="btn-group">
+            <button type="button" id="autoPopulateMatrixBtn" class="btn-primary">Tự động nhảy data theo đề tài</button>
+            <button type="button" id="syncGithubMatrixBtn" class="btn-secondary">Lấy từ GitHub research-workflow</button>
             <button type="button" id="addRowBtn" class="btn-secondary">+ Thêm dòng</button>
-            <button type="button" id="copyMatrixBtn" class="btn-primary">Copy bảng (TSV)</button>
+            <button type="button" id="copyMatrixBtn" class="btn-secondary">Copy bảng (TSV)</button>
           </div>
         </div>
+
+        <div class="lr-filter-row">
+          <input id="lrSearchInput" type="text" placeholder="Lọc nhanh công trình theo từ khóa, tác giả, biến, phương pháp (vd: ESG, SDT, GMM, Motivation, Digital)..." />
+          <span id="lrCountBadge" class="orient-pill">0 công trình</span>
+        </div>
+
+        <div id="variableFrameworkBox" class="var-framework-box"></div>
 
         <div class="table-scroll">
           <table class="matrix-table" id="matrixTable">
             <thead>
               <tr>
                 <th>Tác giả (Năm)</th>
-                <th>Mục tiêu / Bối cảnh</th>
+                <th>Mục tiêu / Bối cảnh / Nguồn</th>
                 <th>Biến / Chỉ tiêu chính</th>
                 <th>Phương pháp / Công cụ</th>
                 <th>Kết quả &amp; Khoảng trống / Ứng dụng</th>
@@ -137,6 +176,8 @@
 
   <div id="toast" class="toast" aria-live="polite">Đã copy</div>
 
-  <script src="app.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script src="data_lr.js?v=2.1"></script>
+  <script src="app.js?v=2.1"></script>
 </body>
 </html>
