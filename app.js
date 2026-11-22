@@ -491,6 +491,7 @@
           els.customDataTextarea.value = state.customInputText;
           saveState();
           renderMatrix();
+          renderPrompts();
           showToast(`Đã nạp ${newMatrix.length} dòng từ ${file.name}`);
           return;
         }
@@ -527,6 +528,7 @@
 
         saveState();
         renderMatrix();
+        renderPrompts();
         showToast(`Đã nạp tệp ${file.name}`);
       } catch (err) {
         showToast(`Lỗi đọc tệp ${file.name}: ${err.message || err}`);
@@ -554,7 +556,7 @@
         .slice(0, 15);
 
       let importedCount = 0;
-      let notes = [];
+      const notes = [];
 
       for (const blob of blobs) {
         const rawUrl = `https://raw.githubusercontent.com/${SOURCE_GITHUB_REPO.owner}/${SOURCE_GITHUB_REPO.repo}/HEAD/${blob.path}`;
@@ -810,77 +812,122 @@
   }
 
   function buildPrompts() {
-    const topic = state.topic.trim() || "[Chưa nhập tên đề tài / bài toán]";
-    const rq = state.rq.trim() || "[Chưa nhập câu hỏi nghiên cứu / mục tiêu chính]";
-    const ctx = state.context.trim() || "[Chưa nhập bối cảnh / dữ liệu]";
-    const extra = state.customInputText.trim() || "[Chưa dán thêm văn bản/dữ liệu tùy chỉnh]";
-    const modeLabel = els.orientationPill.textContent.replace("Đang chọn: ", "");
+    const topic = state.topic.trim();
+    const rq = state.rq.trim();
+    const ctx = state.context.trim();
+    const extra = state.customInputText.trim();
+    const hasTopic = Boolean(topic);
 
-    return [
+    const baseTemplates = [
       {
-        title: `1. Khung đề cương, biến số & phương pháp (${modeLabel})`,
-        body:
-          `Bạn là cố vấn học thuật & chuyên gia (${modeLabel}).\n` +
-          `Đề tài / Bài toán: ${topic}\nCâu hỏi / Mục tiêu: ${rq}\nBối cảnh & Dữ liệu: ${ctx}\n` +
+        title: "1. Khung đề cương, biến số & phương pháp",
+        baseBody:
+          "Đóng vai cố vấn học thuật & chuyên gia ngành.\n" +
+          "Đề tài / Bài toán: [Tên đề tài / bài toán]\n" +
+          "Câu hỏi / Mục tiêu: [Câu hỏi nghiên cứu / mục tiêu]\n" +
+          "Bối cảnh & Dữ liệu: [Bối cảnh / dữ liệu]\n" +
+          "Hãy đề xuất: (1) Khoảng trống nghiên cứu hoặc điểm nghẽn thực tế, (2) Khung đề cương chi tiết, (3) Bảng biến/chỉ tiêu (tên, ký hiệu, thang đo/công thức, kỳ vọng dấu), (4) Phương pháp phân tích/kiểm định.",
+        boundBody:
+          `Đóng vai cố vấn học thuật & chuyên gia ngành.\n` +
+          `Đề tài / Bài toán: ${topic}\n` +
+          `Câu hỏi / Mục tiêu: ${rq || "Xác định nhân tố tác động, cơ chế truyền dẫn và hàm ý thực tiễn"}\n` +
+          `Bối cảnh & Dữ liệu: ${ctx || "Theo bối cảnh và dữ liệu của đề tài"}\n` +
           `Hãy đề xuất: (1) Khoảng trống nghiên cứu hoặc điểm nghẽn thực tế, (2) Khung đề cương chi tiết, (3) Bảng biến/chỉ tiêu (tên, ký hiệu, thang đo/công thức, kỳ vọng dấu), (4) Phương pháp phân tích/kiểm định.`
       },
       {
-        title: "2. Tổng hợp LR Matrix & Gap Matrix (Không suy diễn cảm tính)",
-        body:
-          `Dựa CHỈ trên các tài liệu/dữ liệu đã nạp cho chủ đề "${topic}" (${modeLabel}), lập bảng tổng hợp gồm:\n` +
+        title: "2. Tổng hợp LR Matrix & Gap Matrix",
+        baseBody:
+          "Dựa CHỈ trên các tài liệu/dữ liệu đã nạp cho chủ đề [Tên đề tài], lập bảng tổng hợp gồm:\n" +
+          "Tác giả (Năm) | Bối cảnh & Dữ liệu | Mô hình / Phương pháp | Biến/Chỉ tiêu chính | Kết quả chính | Hạn chế / Khoảng trống.\n" +
+          "Phân biệt rõ: bằng chứng đã xác minh, suy luận của tác giả, gap do tác giả nêu và gap do suy luận; chỉ ra điểm đồng thuận, tranh luận và bằng chứng phản biện.",
+        boundBody:
+          `Dựa CHỈ trên các tài liệu/dữ liệu đã nạp cho chủ đề "${topic}", lập bảng tổng hợp gồm:\n` +
           `Tác giả (Năm) | Bối cảnh & Dữ liệu | Mô hình / Phương pháp | Biến/Chỉ tiêu chính | Kết quả chính | Hạn chế / Khoảng trống.\n` +
           `Phân biệt rõ: bằng chứng đã xác minh, suy luận của tác giả, gap do tác giả nêu và gap do suy luận; chỉ ra điểm đồng thuận, tranh luận và bằng chứng phản biện.`
       },
       {
         title: "3. Tóm tắt tài liệu chuẩn hóa (Tên, Biến, Lý thuyết, Phương pháp, Kết quả, Hạn chế)",
-        body:
-          `Tóm tắt chi tiết tài liệu sau theo cấu trúc: Tên nghiên cứu [Tiếng Anh (Tiếng Việt)]; Tác giả; Quốc gia; Biến độc lập/trung gian/điều tiết/phụ thuộc (kèm kích thước nếu có); Lý thuyết nền & vai trò; Phương pháp (Khảo sát | Lấy mẫu | Phân tích dữ liệu); Đóng góp/Kết quả (giữ nguyên tên biến tiếng Anh); Hạn chế/Hướng nghiên cứu tương lai (bullet bắt đầu bằng đề mục ngắn gọn):\n${extra}`
+        baseBody:
+          "Tóm tắt chi tiết tài liệu sau theo cấu trúc: Tên nghiên cứu [Tiếng Anh (Tiếng Việt)]; Tác giả; Quốc gia; Biến độc lập/trung gian/điều tiết/phụ thuộc (kèm kích thước nếu có); Lý thuyết nền & vai trò; Phương pháp (Khảo sát | Lấy mẫu | Phân tích dữ liệu); Đóng góp/Kết quả (giữ nguyên tên biến tiếng Anh); Hạn chế/Hướng nghiên cứu tương lai (bullet bắt đầu bằng đề mục ngắn gọn):\n[Dán nội dung tài liệu vào đây]",
+        boundBody:
+          `Tóm tắt chi tiết tài liệu sau phục vụ đề tài "${topic}" theo cấu trúc: Tên nghiên cứu [Tiếng Anh (Tiếng Việt)]; Tác giả; Quốc gia; Biến độc lập/trung gian/điều tiết/phụ thuộc (kèm kích thước nếu có); Lý thuyết nền & vai trò; Phương pháp (Khảo sát | Lấy mẫu | Phân tích dữ liệu); Đóng góp/Kết quả (giữ nguyên tên biến tiếng Anh); Hạn chế/Hướng nghiên cứu tương lai (bullet bắt đầu bằng đề mục ngắn gọn):\n${extra || "[Chưa dán thêm nội dung tài liệu — dùng corpus/dữ liệu đang nạp]"}`
       },
       {
         title: "4. Học có hướng dẫn từng bước (Socratic / Guided Learning)",
-        body:
-          `Đóng vai gia sư đại học, hướng dẫn tôi hiểu sâu "${topic}" (RQ: ${rq}) theo phương pháp học có hướng dẫn.\n` +
+        baseBody:
+          "Đóng vai gia sư đại học, hướng dẫn tôi hiểu sâu chủ đề [Tên chủ đề / khái niệm] theo phương pháp học có hướng dẫn.\n" +
+          "Không giải toàn bộ ngay từ đầu; hãy hỏi tôi 2–3 câu hỏi kiểm tra hiểu biết trước, gợi ý khi tôi trả lời chưa đủ để tôi tự sửa, rồi mới chốt khái niệm và phân biệt các khía cạnh cốt lõi.",
+        boundBody:
+          `Đóng vai gia sư đại học, hướng dẫn tôi hiểu sâu đề tài/chủ đề "${topic}"${rq ? ` (RQ: ${rq})` : ""} theo phương pháp học có hướng dẫn.\n` +
           `Không giải toàn bộ ngay từ đầu; hãy hỏi tôi 2–3 câu hỏi kiểm tra hiểu biết trước, gợi ý khi tôi trả lời chưa đủ để tôi tự sửa, rồi mới chốt khái niệm và phân biệt các khía cạnh cốt lõi.`
       },
       {
         title: "5. Xây dựng tài liệu học tập & 10 câu hỏi tự kiểm tra",
-        body:
-          `Dựa hoàn toàn trên tài liệu/dữ liệu sau, biên soạn tài liệu học tập gồm: (1) Mục tiêu học tập; (2) 5 kiến thức trọng tâm & lý do quan trọng; (3) Giải thích khái niệm khó + ví dụ; (4) Hệ thống hóa kiến thức; (5) 10 câu hỏi tự kiểm tra độ khó tăng dần (chưa cung cấp đáp án):\n${extra}`
+        baseBody:
+          "Dựa hoàn toàn trên tài liệu/dữ liệu sau, biên soạn tài liệu học tập gồm: (1) Mục tiêu học tập; (2) 5 kiến thức trọng tâm & lý do quan trọng; (3) Giải thích khái niệm khó + ví dụ; (4) Hệ thống hóa kiến thức; (5) 10 câu hỏi tự kiểm tra độ khó tăng dần (chưa cung cấp đáp án):\n[Dán nội dung chương/tài liệu vào đây]",
+        boundBody:
+          `Dựa hoàn toàn trên tài liệu/dữ liệu sau cho đề tài/chủ đề "${topic}", biên soạn tài liệu học tập gồm: (1) Mục tiêu học tập; (2) 5 kiến thức trọng tâm & lý do quan trọng; (3) Giải thích khái niệm khó + ví dụ; (4) Hệ thống hóa kiến thức; (5) 10 câu hỏi tự kiểm tra độ khó tăng dần (chưa cung cấp đáp án):\n${extra || "[Chưa dán thêm nội dung chương/tài liệu]"}`
       },
       {
-        title: "6. Dịch thuật ngữ học thuật Anh–Việt giữ nguyên cấu trúc & chống tỷ lệ AI",
-        body:
-          `Là chuyên gia ngôn ngữ Anh và nghiên cứu AI, hãy dịch chính xác đoạn văn sau cho bài báo khoa học về "${topic}", giữ nguyên cấu trúc câu văn, ngữ nghĩa và bối cảnh học thuật, diễn đạt tự nhiên:\n${extra}`
+        title: "6. Dịch thuật ngữ học thuật Anh–Việt giữ nguyên cấu trúc",
+        baseBody:
+          "Là chuyên gia ngôn ngữ Anh và nghiên cứu AI, hãy dịch chính xác đoạn văn sau cho bài báo khoa học, giữ nguyên cấu trúc câu văn, ngữ nghĩa và bối cảnh học thuật, diễn đạt tự nhiên:\n[Dán đoạn văn cần dịch vào đây]",
+        boundBody:
+          `Là chuyên gia ngôn ngữ Anh và nghiên cứu AI, hãy dịch chính xác đoạn văn sau cho bài báo khoa học về đề tài "${topic}", giữ nguyên cấu trúc câu văn, ngữ nghĩa và bối cảnh học thuật, diễn đạt tự nhiên:\n${extra || "[Chưa dán đoạn văn cần dịch]"}`
       },
       {
         title: "7. Dàn ý bộ Slide hội thảo khoa học (12–15 slide, ~10 phút)",
-        body:
+        baseBody:
+          "Chuyển nghiên cứu/bài toán [Tên đề tài] thành bộ slide hội thảo 12–15 slide (~10 phút), tối giản chữ (mỗi slide ~30–40 từ, ưu tiên sơ đồ/biểu đồ/bảng).\n" +
+          "Mỗi slide trình bày theo: SLIDE X — [Tên slide] | Objective | Main content | Suggested visual/graphic | Suggested layout | Presenter speaking notes (1–2 câu) | Estimated speaking time.",
+        boundBody:
           `Chuyển nghiên cứu/bài toán "${topic}" thành bộ slide hội thảo 12–15 slide (~10 phút), tối giản chữ (mỗi slide ~30–40 từ, ưu tiên sơ đồ/biểu đồ/bảng).\n` +
           `Mỗi slide trình bày theo: SLIDE X — [Tên slide] | Objective | Main content | Suggested visual/graphic | Suggested layout | Presenter speaking notes (1–2 câu) | Estimated speaking time.`
       },
       {
-        title: "8. Chuẩn hóa trích dẫn (APA / IEEE / Footnote) & Kiểm soát Turnitin / Paraphrase",
-        body:
-          `Áp dụng chuẩn trích dẫn (APA: tên tác giả Việt Nam dùng tên gọi, xếp alphabet; IEEE: [1] theo thứ tự xuất hiện; Footnote cuối trang) và quy tắc kiểm soát trùng lặp/Turnitin (ưu tiên trích dẫn gián tiếp, tóm tắt đại ý kết hợp đổi cấu trúc câu, kiểm tra miễn trừ Quotes/Bibliography, không chèn ký tự lạ/ẩn).\n` +
-          `Nội dung cần kiểm tra/chuẩn hóa:\n${extra}`
+        title: "8. Chuẩn hóa trích dẫn (APA / IEEE / Footnote) & Kiểm soát Turnitin",
+        baseBody:
+          "Áp dụng chuẩn trích dẫn (APA: tên tác giả Việt Nam dùng tên gọi, xếp alphabet; IEEE: [1] theo thứ tự xuất hiện; Footnote cuối trang) và quy tắc kiểm soát trùng lặp/Turnitin (ưu tiên trích dẫn gián tiếp, tóm tắt đại ý kết hợp đổi cấu trúc câu, kiểm tra miễn trừ Quotes/Bibliography, không chèn ký tự lạ/ẩn):\n[Dán nội dung cần kiểm tra/chuẩn hóa vào đây]",
+        boundBody:
+          `Áp dụng chuẩn trích dẫn (APA: tên tác giả Việt Nam dùng tên gọi, xếp alphabet; IEEE: [1] theo thứ tự xuất hiện; Footnote cuối trang) và quy tắc kiểm soát trùng lặp/Turnitin cho đề tài "${topic}" (ưu tiên trích dẫn gián tiếp, tóm tắt đại ý kết hợp đổi cấu trúc câu, kiểm tra miễn trừ Quotes/Bibliography, không chèn ký tự lạ/ẩn):\n${extra || "[Chưa dán nội dung cần kiểm tra/chuẩn hóa]"}`
       }
     ];
+
+    return { hasTopic, topic, items: baseTemplates };
   }
 
   function renderPrompts() {
-    const prompts = buildPrompts();
-    els.promptsList.innerHTML = prompts
-      .map(
-        (pr, idx) => `
+    const data = buildPrompts();
+    window.__PROMPT_COPY_MAP = {};
+
+    els.promptsList.innerHTML = data.items
+      .map((pr, idx) => {
+        const baseKey = `base_${idx}`;
+        const boundKey = `bound_${idx}`;
+        window.__PROMPT_COPY_MAP[baseKey] = pr.baseBody;
+        window.__PROMPT_COPY_MAP[boundKey] = pr.boundBody;
+
+        return `
       <div class="item-box">
         <div class="item-top">
-          <span class="item-title">${escapeHtml(pr.title)}</span>
-          <button type="button" class="btn-copy btn-copy-prompt" data-prompt-idx="${idx}">Copy prompt</button>
+          <span class="item-title">${escapeHtml(pr.title)} — Mẫu gốc</span>
+          <button type="button" class="btn-copy btn-copy-prompt-key" data-copy-key="${baseKey}" data-copy-label="${escapeAttr(pr.title + " (Mẫu gốc)")}">Copy mẫu gốc</button>
         </div>
-        <pre class="prompt-pre">${escapeHtml(pr.body)}</pre>
+        <pre class="prompt-pre">${escapeHtml(pr.baseBody)}</pre>
+        ${
+          data.hasTopic
+            ? `<div class="step-result-box">
+                 <div class="item-top">
+                   <strong style="font-size:12.5px;color:#0f766e;">Đã gắn đề tài: ${escapeHtml(data.topic)}</strong>
+                   <button type="button" class="btn-primary btn-copy-prompt-key" data-copy-key="${boundKey}" data-copy-label="${escapeAttr(pr.title + " (Đã gắn đề tài)")}">Copy bản có đề tài</button>
+                 </div>
+                 <pre class="prompt-pre">${escapeHtml(pr.boundBody)}</pre>
+               </div>`
+            : ""
+        }
       </div>
-    `
-      )
+    `;
+      })
       .join("");
   }
 
@@ -1058,12 +1105,12 @@
   });
 
   els.promptsList.addEventListener("click", (e) => {
-    const btn = e.target.closest(".btn-copy-prompt");
+    const btn = e.target.closest(".btn-copy-prompt-key");
     if (!btn) return;
-    const idx = Number(btn.dataset.promptIdx);
-    const prompts = buildPrompts();
-    if (!Number.isNaN(idx) && prompts[idx]) {
-      copyText(prompts[idx].body, prompts[idx].title);
+    const key = btn.dataset.copyKey;
+    const label = btn.dataset.copyLabel || "Prompt";
+    if (key && window.__PROMPT_COPY_MAP && window.__PROMPT_COPY_MAP[key]) {
+      copyText(window.__PROMPT_COPY_MAP[key], label);
     }
   });
 
