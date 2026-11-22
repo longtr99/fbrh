@@ -319,6 +319,15 @@
     syncGithubBtn: document.getElementById("syncGithubBtn"),
     syncGithubMatrixBtn: document.getElementById("syncGithubMatrixBtn"),
     exportProjectBtn: document.getElementById("exportProjectBtn"),
+    multiExportToggleBtn: document.getElementById("multiExportToggleBtn"),
+    multiExportPanel: document.getElementById("multiExportPanel"),
+    expOptWord: document.getElementById("expOptWord"),
+    expOptPdf: document.getElementById("expOptPdf"),
+    expOptTxt: document.getElementById("expOptTxt"),
+    expOptMd: document.getElementById("expOptMd"),
+    expOptJson: document.getElementById("expOptJson"),
+    expScopeSelect: document.getElementById("expScopeSelect"),
+    runMultiExportBtn: document.getElementById("runMultiExportBtn"),
     syncStatusText: document.getElementById("syncStatusText"),
     libraryTitle: document.getElementById("libraryTitle"),
     libraryDesc: document.getElementById("libraryDesc"),
@@ -376,6 +385,16 @@
     }
   }
 
+  function saveExportBlob(content, fileName, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   function exportRowsToExcel(headers, rows, fileName, sheetName) {
     if (!window.XLSX) {
       showToast("Thư viện xuất Excel chưa tải xong");
@@ -387,6 +406,160 @@
     window.XLSX.utils.book_append_sheet(wb, ws, sheetName || "Data");
     window.XLSX.writeFile(wb, fileName);
     showToast(`Đã xuất ${fileName}`);
+  }
+
+  function buildMultiExportPayload(scope) {
+    const topic = state.topic.trim() || "(Chưa nhập tên đề tài)";
+    const rq = state.rq.trim() || "(Chưa nhập RQ / Mục tiêu)";
+    const ctx = state.context.trim() || "(Chưa nhập bối cảnh / dữ liệu)";
+
+    const matrixSection = {
+      title: "Literature Review Matrix",
+      headers: [
+        "Tác giả (Năm)",
+        "Mục tiêu / Bối cảnh / Nguồn",
+        "Biến / Chỉ tiêu chính",
+        "Phương pháp / Công cụ",
+        "Kết quả & Khoảng trống / Ứng dụng"
+      ],
+      rows: state.matrixRows.map((r) => [r.author, r.goal, r.vars, r.method, r.finding])
+    };
+
+    const varSection = {
+      title: "Khung biến / Chỉ tiêu",
+      headers: [
+        "Đề tài / RQ / Bối cảnh",
+        "Biến phụ thuộc / Chỉ tiêu đầu ra (Y)",
+        "Biến độc lập / Nhân tố tác động (X)",
+        "Trung gian / Điều tiết / Kiểm soát (Med/Mod/Controls)",
+        "Phương pháp & Thang đo gợi ý"
+      ],
+      rows: state.varRows.map((r) => [r.meta, r.yVar, r.xVar, r.medModVar, r.methodScale])
+    };
+
+    if (scope === "matrix") {
+      return {
+        baseName: "FBRH_LR_Matrix",
+        heading: `LR MATRIX — ${topic}`,
+        jsonObj: { exportedAt: new Date().toISOString(), topic, matrixRows: state.matrixRows },
+        sections: [matrixSection]
+      };
+    }
+
+    if (scope === "varframework") {
+      return {
+        baseName: "FBRH_Khung_Bien",
+        heading: `KHUNG BIẾN / CHỈ TIÊU — ${topic}`,
+        jsonObj: { exportedAt: new Date().toISOString(), topic, rq, context: ctx, varRows: state.varRows },
+        sections: [varSection]
+      };
+    }
+
+    const stepsRows = state.steps20.map((s, i) => [
+      `Bước ${i + 1}`,
+      s,
+      state.stepOutputs[i] ? "Đã chạy" : "Chưa chạy",
+      state.stepOutputs[i] || "",
+      ""
+    ]);
+
+    return {
+      baseName: "FBRH_Du_An_Tong_Hop",
+      heading: `BÁO CÁO DỰ ÁN — ${topic}`,
+      metaLines: [`Đề tài: ${topic}`, `RQ / Mục tiêu: ${rq}`, `Bối cảnh / Dữ liệu: ${ctx}`],
+      jsonObj: {
+        exportedAt: new Date().toISOString(),
+        targetRepo: "longtr99/fbrh",
+        orientation: state.orientation,
+        topic: state.topic,
+        rq: state.rq,
+        context: state.context,
+        customInputText: state.customInputText,
+        steps20: state.steps20,
+        stepOutputs: state.stepOutputs,
+        matrixRows: state.matrixRows,
+        varRows: state.varRows
+      },
+      sections: [
+        varSection,
+        matrixSection,
+        {
+          title: "Sổ tay 20 Bước",
+          headers: ["Bước", "Nội dung bước", "Trạng thái", "Kết quả / Prompt đã sinh", "Ghi chú"],
+          rows: stepsRows
+        }
+      ]
+    };
+  }
+
+  function formatMultiTxt(payload) {
+    const lines = [payload.heading, "========================================"];
+    if (payload.metaLines) lines.push(...payload.metaLines, "");
+    payload.sections.forEach((sec) => {
+      lines.push(`[${sec.title}]`);
+      sec.rows.forEach((r, idx) => {
+        lines.push(`${idx + 1}. ` + r.map((val, ci) => `${sec.headers[ci]}: ${val || ""}`).join(" | "));
+      });
+      lines.push("");
+    });
+    return lines.join("\n");
+  }
+
+  function formatMultiMd(payload) {
+    const lines = [`# ${payload.heading}`, ""];
+    if (payload.metaLines) {
+      payload.metaLines.forEach((m) => lines.push(`- **${m}**`));
+      lines.push("");
+    }
+    payload.sections.forEach((sec) => {
+      lines.push(`## ${sec.title}`, "");
+      lines.push(`| ${sec.headers.map((h) => String(h).replace(/\|/g, "\\|")).join(" | ")} |`);
+      lines.push(`| ${sec.headers.map(() => "---").join(" | ")} |`);
+      sec.rows.forEach((r) => {
+        lines.push(`| ${r.map((val) => String(val || "").replace(/\r?\n/g, " ").replace(/\|/g, "\\|")).join(" | ")} |`);
+      });
+      lines.push("");
+    });
+    return lines.join("\n");
+  }
+
+  function formatMultiWordHtml(payload) {
+    const meta = (payload.metaLines || []).map((m) => `<p><strong>${escapeHtml(m)}</strong></p>`).join("");
+    const secs = payload.sections
+      .map((sec) => {
+        const ths = sec.headers
+          .map((h) => `<th style="border:1px solid #94a3b8;padding:6px;background:#f1f5f9;">${escapeHtml(h)}</th>`)
+          .join("");
+        const trs = sec.rows
+          .map(
+            (r) =>
+              `<tr>${r
+                .map(
+                  (val) =>
+                    `<td style="border:1px solid #cbd5e1;padding:6px;vertical-align:top;">${escapeHtml(val || "").replace(/\r?\n/g, "<br/>")}</td>`
+                )
+                .join("")}</tr>`
+          )
+          .join("");
+        return `<h3>${escapeHtml(sec.title)}</h3><table style="width:100%;border-collapse:collapse;font-size:11pt;margin-bottom:14px;"><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`;
+      })
+      .join("");
+    return `<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><title>${escapeHtml(payload.heading)}</title></head><body style="font-family:Times New Roman,serif;"><h2>${escapeHtml(payload.heading)}</h2>${meta}${secs}</body></html>`;
+  }
+
+  function openPdfPrintPreview(payload) {
+    const html = formatMultiWordHtml(payload);
+    const w = window.open("", "_blank", "width=900,height=700");
+    if (!w) {
+      showToast("Trình duyệt đang chặn popup — hãy bật popup để xem trước & lưu PDF");
+      return;
+    }
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => {
+      w.print();
+    }, 300);
   }
 
   function escapeHtml(val) {
@@ -716,26 +889,8 @@
   }
 
   function exportProjectJson() {
-    const payload = {
-      exportedAt: new Date().toISOString(),
-      targetRepo: "longtr99/fbrh",
-      orientation: state.orientation,
-      topic: state.topic,
-      rq: state.rq,
-      context: state.context,
-      customInputText: state.customInputText,
-      steps20: state.steps20,
-      stepOutputs: state.stepOutputs,
-      matrixRows: state.matrixRows,
-      varRows: state.varRows
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "fbrh-research-project.json";
-    a.click();
-    URL.revokeObjectURL(url);
+    const bundle = buildMultiExportPayload("all");
+    saveExportBlob(JSON.stringify(bundle.jsonObj, null, 2), "fbrh-research-project.json", "application/json;charset=utf-8");
     showToast("Đã xuất JSON dự án fbrh");
   }
 
@@ -1130,8 +1285,7 @@
       state.rq = els.rqInput.value;
       state.context = els.contextInput.value;
       if (state.varRows.length > 0) {
-        const latest = buildVarRowFromCurrentState();
-        state.varRows[0] = latest;
+        state.varRows[0] = buildVarRowFromCurrentState();
       }
       renderVarFramework();
       renderPrompts();
@@ -1180,6 +1334,49 @@
   }
   if (els.exportProjectBtn) {
     els.exportProjectBtn.addEventListener("click", exportProjectJson);
+  }
+
+  if (els.multiExportToggleBtn && els.multiExportPanel) {
+    els.multiExportToggleBtn.addEventListener("click", () => {
+      els.multiExportPanel.hidden = !els.multiExportPanel.hidden;
+    });
+  }
+
+  if (els.runMultiExportBtn) {
+    els.runMultiExportBtn.addEventListener("click", () => {
+      const chosen = [];
+      if (els.expOptWord && els.expOptWord.checked) chosen.push("word");
+      if (els.expOptPdf && els.expOptPdf.checked) chosen.push("pdf");
+      if (els.expOptTxt && els.expOptTxt.checked) chosen.push("txt");
+      if (els.expOptMd && els.expOptMd.checked) chosen.push("md");
+      if (els.expOptJson && els.expOptJson.checked) chosen.push("json");
+
+      if (!chosen.length) {
+        showToast("Hãy tick chọn ít nhất 1 định dạng trước khi tải");
+        return;
+      }
+
+      const scope = (els.expScopeSelect && els.expScopeSelect.value) || "all";
+      const payload = buildMultiExportPayload(scope);
+
+      if (chosen.includes("word")) {
+        saveExportBlob(formatMultiWordHtml(payload), `${payload.baseName}.doc`, "application/msword;charset=utf-8");
+      }
+      if (chosen.includes("txt")) {
+        saveExportBlob(formatMultiTxt(payload), `${payload.baseName}.txt`, "text/plain;charset=utf-8");
+      }
+      if (chosen.includes("md")) {
+        saveExportBlob(formatMultiMd(payload), `${payload.baseName}.md`, "text/markdown;charset=utf-8");
+      }
+      if (chosen.includes("json")) {
+        saveExportBlob(JSON.stringify(payload.jsonObj, null, 2), `${payload.baseName}.json`, "application/json;charset=utf-8");
+      }
+      if (chosen.includes("pdf")) {
+        openPdfPrintPreview(payload);
+      }
+
+      showToast(`Đã tải: ${chosen.map((c) => c.toUpperCase()).join(", ")}`);
+    });
   }
 
   els.presetGrid.addEventListener("click", (e) => {
