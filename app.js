@@ -10,17 +10,17 @@
   const PRESETS = {
     research: [
       {
-        id: "res-esg-bank-risk",
+        id: "res-1",
         title: "1. ESG, Rủi ro ngân hàng & Chi phí vốn",
         topic: "Tác động của điểm số ESG đến rủi ro tín dụng và chi phí vốn của ngân hàng thương mại",
         rq: "Điểm số ESG tác động như thế nào đến rủi ro vỡ nợ/rủi ro tín dụng và chi phí vốn của NHTM, và vai trò điều tiết của quản trị công ty ra sao?",
-        context: "Dữ liệu bảng ngân hàng niêm yết/khu vực giai đoạn 2015–2025; kiểm định tính nội sinh và cơ chế truyền dẫn.",
+        context: "Dữ liệu bảng ngân hàng niêm yết/khu vực; kiểm định tính nội sinh và cơ chế truyền dẫn.",
         variables: "Y: NPL / Z-score / Cost of Debt | X: ESG Score | Mod/Med: Board Independence, Institutional Ownership",
         method: "Panel Fixed/Random Effects, System GMM, PSM / Difference-in-Differences",
         query: '("ESG" OR "environmental, social and governance") AND ("bank risk" OR "credit risk" OR "cost of debt")'
       },
       {
-        id: "res-fintech-nim",
+        id: "res-2",
         title: "2. Fintech, Cạnh tranh số & Biên lãi ròng (NIM)",
         topic: "Ảnh hưởng của tăng trưởng Fintech và ngân hàng số đến biên lãi ròng và sức mạnh thị trường của NHTM",
         rq: "Sự mở rộng của Fintech làm thay đổi NIM và nguồn thu ngoài lãi của NHTM ra sao? Quy mô và mức độ chuyển đổi số có tạo khác biệt không?",
@@ -30,7 +30,7 @@
         query: '("fintech" OR "digital banking") AND ("net interest margin" OR "bank profitability" OR "competition")'
       },
       {
-        id: "res-green-finance-inv",
+        id: "res-3",
         title: "3. Tài chính xanh, Ràng buộc tài chính & Đầu tư doanh nghiệp",
         topic: "Tác động của tín dụng xanh và trái phiếu xanh đến đầu tư xanh và hiệu quả tài chính doanh nghiệp",
         rq: "Tiếp cận tài chính xanh giúp giảm ràng buộc tài chính và thúc đẩy đầu tư xanh của doanh nghiệp như thế nào?",
@@ -40,7 +40,7 @@
         query: '("green finance" OR "green credit" OR "green bond") AND ("corporate investment" OR "financial constraints" OR "firm performance")'
       },
       {
-        id: "res-monetary-liquidity",
+        id: "res-4",
         title: "4. Chính sách tiền tệ, Thanh khoản & Rủi ro hệ thống",
         topic: "Cơ chế truyền dẫn chính sách tiền tệ qua kênh thanh khoản và rủi ro hệ thống của hệ thống ngân hàng",
         rq: "Thay đổi lập trường chính sách tiền tệ tác động đến thanh khoản ngân hàng và mức độ đóng góp rủi ro hệ thống ra sao?",
@@ -50,7 +50,7 @@
         query: '("monetary policy" OR "interest rate") AND ("bank liquidity" OR "systemic risk" OR "CoVaR")'
       },
       {
-        id: "res-capital-structure-uncertainty",
+        id: "res-5",
         title: "5. Bất định kinh tế vĩ mô, Cấu trúc vốn & Tốc độ điều chỉnh đòn bẩy",
         topic: "Bất định chính sách kinh tế và tốc độ điều chỉnh cấu trúc vốn mục tiêu của doanh nghiệp",
         rq: "Bất định vĩ mô làm chậm hay đẩy nhanh tốc độ điều chỉnh đòn bẩy tài chính về mức mục tiêu của doanh nghiệp?",
@@ -60,7 +60,7 @@
         query: '("policy uncertainty" OR "macroeconomic uncertainty") AND ("capital structure" OR "leverage adjustment")'
       },
       {
-        id: "res-mna-valuation-governance",
+        id: "res-6",
         title: "6. M&A, Quản trị công ty & Hiệu quả sau sáp nhập",
         topic: "Vai trò của quản trị công ty và tương đồng chiến lược đến giá trị tạo ra trong các thương vụ M&A",
         rq: "Yếu tố quản trị công ty và cấu trúc thanh toán ảnh hưởng thế nào đến lợi suất bất thường tích lũy (CAR) và hiệu quả dài hạn sau M&A?",
@@ -68,11 +68,111 @@
         variables: "Y: CAR [-3,+3] / [-5,+5], BHAR, post-M&A ROA | X: Governance Index, Deal Payment Method, Relatedness | Controls: Relative Size, Leverage, Cash",
         method: "Event Study (Market Model) kết hợp OLS/Heckman selection và Propensity Score Matching",
         query: '("mergers and acquisitions" OR "M&A") AND ("corporate governance" OR "abnormal returns" OR "post-merger performance")'
+      },
+      {
+        id: "res-7",
+        title: "7. Rủi ro tín dụng, Z''-Score & Xác suất vỡ nợ (PD / Logit / ROC)",
+        topic: "Phân tích nhân tố tài chính – vĩ mô tác động đến rủi ro tín dụng, điểm Z''-Score và xác suất vỡ nợ của doanh nghiệp",
+        rq: "Các chỉ số đòn bẩy, thanh khoản, dòng tiền và yếu tố vĩ mô dự báo rủi ro vỡ nợ/tín dụng chính xác đến đâu?",
+        context: "BCTC doanh nghiệp / ngân hàng kết hợp phân vùng Z''-score, hồi quy Logistic / Probit / Panel và đường cong ROC.",
+        variables: "Y: Default / NPL / Z''-score | X: Leverage, Interest Coverage, OCF/Debt, GDP, Inflation | Controls: Size, Tangibility, Age",
+        method: "Logistic Regression / Probit, ROC-AUC, Z''-Score Zoning & Panel FE/RE/GMM",
+        query: '("credit risk" OR "default probability" OR "z-score") AND ("logistic regression" OR "ROC" OR "bank" OR "firm")'
+      },
+      {
+        id: "res-8",
+        title: "8. Đệm vốn (CAR), Quy định Basel & Khẩu vị rủi ro ngân hàng",
+        topic: "Tác động của đệm vốn tự có và quy định an toàn vốn đến khẩu vị rủi ro và tăng trưởng tín dụng của NHTM",
+        rq: "Áp lực đệm vốn khiến ngân hàng giảm rủi ro danh mục hay tăng rủi ro để bù đắp chi phí vốn?",
+        context: "Dữ liệu NHTM theo tỷ lệ an toàn vốn (CAR), đệm vốn vượt quy định và mức độ rủi ro tài sản.",
+        variables: "Y: Risk-Weighted Assets Ratio / Credit Growth | X: Capital Buffer / CAR | Mod: Ownership / State Control | Controls: ROA, Size, NPL",
+        method: "Two-step System GMM / Simultaneous Equations & Threshold Regression",
+        query: '("capital buffer" OR "capital adequacy") AND ("bank risk-taking" OR "credit growth" OR "Basel")'
+      },
+      {
+        id: "res-9",
+        title: "9. Rủi ro thanh khoản, LCR/NSFR & Tính dễ tổn thương ngân hàng",
+        topic: "Các nhân tố quyết định rủi ro thanh khoản và tác động của thanh khoản đến hiệu quả và ổn định ngân hàng",
+        rq: "Cấu trúc nguồn vốn ngắn hạn, tài sản thanh khoản và biến động lãi suất ảnh hưởng ra sao đến rủi ro thanh khoản ngân hàng?",
+        context: "Dữ liệu bảng NHTM theo tỷ lệ thanh khoản, tiền gửi ổn định, tài trợ thị trường và điều kiện vĩ mô.",
+        variables: "Y: Liquidity Risk / Financing Gap / ROA | X: Deposit Ratio, Interbank Funding, Capital, Policy Rate | Controls: Size, NPL, Cost-to-Income",
+        method: "Panel FE/RE, System GMM & Stress / Liquidity Gap Analysis",
+        query: '("liquidity risk" OR "bank liquidity") AND ("bank profitability" OR "stability" OR "funding")'
+      },
+      {
+        id: "res-10",
+        title: "10. Đa dạng hóa thu nhập, Thu nhập ngoài lãi & Ổn định NHTM",
+        topic: "Tác động của đa dạng hóa sang thu nhập ngoài lãi và dịch vụ số đến lợi nhuận và biến động thu nhập của NHTM",
+        rq: "Mở rộng thu nhập ngoài lãi giúp giảm hay làm tăng biến động lợi nhuận và rủi ro tổng thể của NHTM?",
+        context: "Dữ liệu báo cáo thu nhập lãi thuần và thu nhập ngoài lãi (phí, dịch vụ, kinh doanh ngoại hối/chứng khoán).",
+        variables: "Y: ROA, ROE, Z-score, Return Volatility | X: Non-interest Income Share / Revenue Diversification | Controls: Size, Equity Ratio, Loan Ratio",
+        method: "Panel Fixed Effects, System GMM & Risk-Return Tradeoff Analysis",
+        query: '("income diversification" OR "non-interest income") AND ("bank stability" OR "bank performance" OR "risk")'
+      },
+      {
+        id: "res-11",
+        title: "11. Chính sách cổ tức, Nắm giữ tiền mặt & Ràng buộc tài chính",
+        topic: "Ảnh hưởng của ràng buộc tài chính và bất định dòng tiền đến chính sách cổ tức và dự trữ tiền mặt của doanh nghiệp",
+        rq: "Doanh nghiệp ưu tiên giữ tiền mặt hay chi trả cổ tức khi đối mặt biến động dòng tiền và chi phí vốn biến động?",
+        context: "Dữ liệu tài chính doanh nghiệp niêm yết; phân nhóm theo quy mô, cổ tức hoặc chỉ số ràng buộc tài chính.",
+        variables: "Y: Cash Holdings / Dividend Payout | X: Cash Flow Volatility, Financial Constraints, Leverage | Controls: Size, Profitability, MTB, CapEx",
+        method: "Tobit / Panel FE / System GMM & Financial Constraint Classification",
+        query: '("cash holdings" OR "dividend policy") AND ("financial constraints" OR "cash flow volatility")'
+      },
+      {
+        id: "res-12",
+        title: "12. Cấu trúc sở hữu, Sở hữu nhà nước/nước ngoài & Hiệu quả tài chính",
+        topic: "Tác động của cấu trúc sở hữu (nhà nước, nước ngoài, cổ đông lớn) đến hiệu quả tài chính và quản trị rủi ro",
+        rq: "Cơ cấu sở hữu chi phối hiệu quả hoạt động và mức độ chấp nhận rủi ro của doanh nghiệp/ngân hàng như thế nào?",
+        context: "Dữ liệu công bố thông tin cổ đông, tỷ lệ sở hữu nhà nước, sở hữu nước ngoài và hiệu quả kinh doanh.",
+        variables: "Y: Tobin's Q, ROA, ROE, Risk | X: State Ownership, Foreign Ownership, Ownership Concentration | Controls: Size, Leverage, Board Size",
+        method: "Panel FE/RE, IV-2SLS / System GMM & Endogeneity Control",
+        query: '("ownership structure" OR "foreign ownership" OR "state ownership") AND ("firm performance" OR "bank")'
+      },
+      {
+        id: "res-13",
+        title: "13. Tài chính toàn diện, Tiếp cận tín dụng & Phát triển SME",
+        topic: "Vai trò của tài chính toàn diện và tín dụng SME đến tăng trưởng, đổi mới và khả năng chống chịu của doanh nghiệp nhỏ và vừa",
+        rq: "Mức độ tiếp cận tài chính và dịch vụ ngân hàng số tác động ra sao đến hiệu quả và tăng trưởng của SME?",
+        context: "Dữ liệu khảo sát SME hoặc dữ liệu tài chính/tín dụng SME theo địa phương/ngành.",
+        variables: "Y: SME Growth, Productivity, Survival/Innovation | X: Access to Credit, Digital Finance, Financial Literacy | Controls: Firm Age, Size, Sector",
+        method: "OLS / Tobit / Logit / PSM / SEM",
+        query: '("financial inclusion" OR "access to finance") AND ("SMEs" OR "small and medium enterprises")'
+      },
+      {
+        id: "res-14",
+        title: "14. Rủi ro khí hậu, Rủi ro chuyển đổi carbon & Định giá tài sản / Tín dụng",
+        topic: "Tác động của rủi ro khí hậu và phát thải carbon đến chi phí vốn, rủi ro tín dụng và định giá doanh nghiệp",
+        rq: "Thị trường tài chính và ngân hàng phản ánh rủi ro phát thải carbon / khí hậu vào chi phí vốn và định giá như thế nào?",
+        context: "Dữ liệu phát thải/mức độ nhạy cảm môi trường kết hợp chi phí nợ, định giá thị trường và rủi ro tín dụng.",
+        variables: "Y: Cost of Debt, Credit Risk, Tobin's Q / Stock Return | X: Carbon Intensity / Climate Risk Exposure | Controls: Size, Leverage, ROA",
+        method: "Panel Regression, DID / Event Study & Robustness Checks",
+        query: '("climate risk" OR "carbon risk") AND ("cost of capital" OR "credit risk" OR "firm valuation")'
+      },
+      {
+        id: "res-15",
+        title: "15. Lan truyền biến động thị trường tài chính, Tỷ giá & Lãi suất",
+        topic: "Cơ chế lan tỏa biến động và kết nối giữa thị trường cổ phiếu, trái phiếu, lãi suất và tỷ giá",
+        rq: "Cú sốc từ thị trường quốc tế, lãi suất hoặc tỷ giá lan truyền sang thị trường tài chính trong nước ra sao?",
+        context: "Chuỗi dữ liệu giá/lợi suất tài sản tài chính, tỷ giá và lãi suất theo tần suất ngày/tuần/tháng.",
+        variables: "Y: Return / Volatility / Spillover Index | X: Global Index, Exchange Rate, Interest Rate Shock | Controls: Macro Volatility, Liquidity",
+        method: "VAR / SVAR, GARCH / DCC-GARCH hoặc Spillover / Quantile Connectedness",
+        query: '("volatility spillover" OR "connectedness") AND ("stock market" OR "exchange rate" OR "interest rate")'
+      },
+      {
+        id: "res-16",
+        title: "16. Khủng hoảng, Cú sốc vĩ mô & Sức chống chịu hệ thống tài chính",
+        topic: "Đánh giá sức chống chịu của doanh nghiệp và ngân hàng trước các cú sốc vĩ mô và giai đoạn biến động cực đoan",
+        rq: "Đặc điểm tài chính và thanh khoản nào giúp ngân hàng/doanh nghiệp duy trì hoạt động tốt hơn trong giai đoạn biến động?",
+        context: "Dữ liệu bảng trước, trong và sau các giai đoạn biến động kinh tế – tài chính.",
+        variables: "Y: Performance Drop, Default / Distress Probability, Recovery | X: Pre-shock Liquidity, Capital, Leverage | Mod: Crisis Period Dummy",
+        method: "Panel DID, Survival / Hazard Model, Logistic / Stress Testing",
+        query: '("financial resilience" OR "crisis") AND ("banks" OR "firms") AND ("liquidity" OR "leverage")'
       }
     ],
     applied: [
       {
-        id: "app-credit-scoring",
+        id: "app-1",
         title: "1. Mô hình Chấm điểm tín dụng & Cảnh báo sớm nợ xấu",
         topic: "Xây dựng khung chấm điểm tín dụng và cảnh báo sớm khách hàng vay/doanh nghiệp có nguy cơ quá hạn",
         rq: "Làm sao phân tầng rủi ro khách hàng và thiết lập ngưỡng cảnh báo sớm trước khi phát sinh nợ nhóm 3+?",
@@ -82,7 +182,7 @@
         query: '("credit scoring" OR "early warning system" OR "probability of default") AND ("banking" OR "loan default" OR "risk management")'
       },
       {
-        id: "app-financial-health-dashboard",
+        id: "app-2",
         title: "2. Khung Đánh giá sức khỏe tài chính & Khả năng thanh toán doanh nghiệp",
         topic: "Thiết kế bộ chỉ số và quy trình thẩm định sức khỏe tài chính doanh nghiệp phục vụ cấp tín dụng / đầu tư",
         rq: "Hệ thống chỉ tiêu thanh khoản, đòn bẩy, dòng tiền và hiệu quả hoạt động nào phản ánh sớm nhất áp lực mất khả năng chi trả?",
@@ -92,7 +192,7 @@
         query: '("financial distress" OR "corporate solvency" OR "credit analysis") AND ("cash flow" OR "working capital" OR "z-score")'
       },
       {
-        id: "app-portfolio-risk-budgeting",
+        id: "app-3",
         title: "3. Phân bổ danh mục đầu tư & Quản trị rủi ro thị trường / thanh khoản",
         topic: "Xây dựng quy trình phân bổ tỷ trọng danh mục và kiểm soát rủi ro biến động/thanh khoản cho nhà đầu tư hoặc ngân hàng",
         rq: "Làm sao cân bằng lợi suất kỳ vọng, biến động danh mục và mức sụt giảm tối đa (Max Drawdown) theo khẩu vị rủi ro?",
@@ -102,7 +202,7 @@
         query: '("portfolio optimization" OR "risk budgeting" OR "value at risk") AND ("drawdown" OR "liquidity risk" OR "stress testing")'
       },
       {
-        id: "app-working-capital-treasury",
+        id: "app-4",
         title: "4. Tối ưu vốn lưu động & Quản trị dòng tiền (Treasury)",
         topic: "Quy trình rút ngắn chu kỳ chuyển đổi tiền mặt (CCC) và tối ưu quản trị tiền mặt – nợ ngắn hạn tại doanh nghiệp",
         rq: "Doanh nghiệp có thể giải phóng bao nhiêu dòng tiền hoạt động thông qua tối ưu khoản phải thu, tồn kho và phải trả?",
@@ -112,7 +212,7 @@
         query: '("working capital management" OR "cash conversion cycle" OR "corporate treasury") AND ("liquidity" OR "cash flow")'
       },
       {
-        id: "app-valuation-dcf-multiples",
+        id: "app-5",
         title: "5. Mô hình Định giá doanh nghiệp & Thẩm định phương án đầu tư / M&A",
         topic: "Xây dựng mô hình định giá DCF kết hợp bội số thị trường và phân tích độ nhạy cho thương vụ đầu tư hoặc M&A",
         rq: "Giá trị hợp lý của doanh nghiệp/dự án nhạy cảm nhất với các giả định tăng trưởng, biên lợi nhuận và chi phí vốn (WACC) nào?",
@@ -122,7 +222,7 @@
         query: '("business valuation" OR "DCF" OR "WACC") AND ("mergers and acquisitions" OR "sensitivity analysis" OR "valuation multiples")'
       },
       {
-        id: "app-aml-fraud-monitoring",
+        id: "app-6",
         title: "6. Khung Giám sát giao dịch bất thường & Kiểm soát rủi ro vận hành",
         topic: "Thiết kế bộ quy tắc và chỉ báo giám sát giao dịch bất thường / rủi ro vận hành trong ngân hàng và thanh toán số",
         rq: "Những dấu hiệu hành vi và ngưỡng cảnh báo nào giúp phát hiện sớm giao dịch bất thường mà vẫn hạn chế báo động giả?",
@@ -130,6 +230,66 @@
         variables: "Indicators: Velocity Spike, Amount Deviation (z-score), Off-hours/Channel Shift, Alert Precision & False Positive Rate",
         method: "Rule-based scoring kết hợp anomaly threshold tuning và đánh giá chi phí/hiệu quả vận hành (Precision/Recall)",
         query: '("transaction monitoring" OR "fraud detection" OR "operational risk") AND ("banking" OR "anomaly" OR "risk controls")'
+      },
+      {
+        id: "app-7",
+        title: "7. Mô hình Quản trị rủi ro lãi suất (Repricing Gap / Duration / NII Stress)",
+        topic: "Đo lường độ nhạy thu nhập lãi ròng (NII) và giá trị vốn chủ (EVE) của ngân hàng trước biến động lãi suất",
+        rq: "Kỳ hạn tài sản – nguồn vốn lệch pha tác động thế nào đến biên lãi ròng và vốn tự có khi lãi suất tăng/giảm đột ngột?",
+        context: "Bảng cân đối kế toán phân nhóm kỳ hạn định giá lại/đáo hạn và các kịch bản dịch chuyển đường cong lãi suất.",
+        variables: "Metrics: Repricing Gap, NII Sensitivity, EVE Change, Net Interest Margin under Rate Shocks",
+        method: "Gap & Duration Analysis, Interest Rate Shock Scenarios & Sensitivity Table",
+        query: '("interest rate risk" OR "net interest income") AND ("banking book" OR "stress testing" OR "duration gap")'
+      },
+      {
+        id: "app-8",
+        title: "8. Mô hình Quản trị thanh khoản & Stress Test dòng tiền ngân hàng",
+        topic: "Xây dựng khung giám sát chỉ số thanh khoản và mô phỏng rút tiền hàng loạt (run-off stress test)",
+        rq: "Đệm tài sản thanh khoản đủ duy trì hoạt động bao nhiêu ngày trong kịch bản rút tiền gửi và đóng băng thị trường liên ngân hàng?",
+        context: "Cơ cấu tiền gửi khách hàng, tài sản thanh khoản chất lượng cao, cam kết tín dụng và dòng tiền đến hạn.",
+        variables: "Metrics: LCR / Liquidity Ratio, Cash Inflow/Outflow, Survival Horizon (Days), Fire-sale Haircut",
+        method: "Liquidity Stress Testing, Cash Flow Ladder & Scenario Simulation",
+        query: '("liquidity stress test" OR "liquidity coverage") AND ("bank run" OR "funding liquidity")'
+      },
+      {
+        id: "app-9",
+        title: "9. Khung Thẩm định tín dụng dự án & Đánh giá hiệu quả tài chính dự án đầu tư",
+        topic: "Xây dựng quy trình thẩm định hiệu quả tài chính và khả năng trả nợ của dự án đầu tư",
+        rq: "Các chỉ tiêu sinh lời và khả năng trả nợ của dự án biến động ra sao khi doanh thu, chi phí đầu vào và lãi suất vay thay đổi?",
+        context: "Dòng tiền dự án, vốn đầu tư ban đầu, cơ cấu nợ vay, lịch trả gốc/lãi và các kịch bản vận hành.",
+        variables: "Metrics: NPV, IRR, Payback Period, DSCR, LLCR, Break-even Point, Sensitivity & Scenario Matrix",
+        method: "Project Cash Flow Modeling, DSCR/LLCR Analysis, Sensitivity & Scenario Testing",
+        query: '("project appraisal" OR "capital budgeting" OR "DSCR") AND ("sensitivity analysis" OR "feasibility")'
+      },
+      {
+        id: "app-10",
+        title: "10. Phân tích danh mục cho vay (Portfolio Concentration & NPL Migration)",
+        topic: "Đánh giá mức độ tập trung tín dụng theo ngành/khách hàng và dịch chuyển nhóm nợ trong danh mục cho vay",
+        rq: "Nhóm ngành/phân khúc nào đang tạo rủi ro tập trung và dịch chuyển nợ xấu nhanh nhất trong danh mục?",
+        context: "Dư nợ phân theo ngành, phân khúc khách hàng, tài sản bảo đảm và trạng thái nợ qua các kỳ.",
+        variables: "Metrics: HHI Concentration, NPL Ratio by Sector, Roll/Migration Rate, Provision Coverage Ratio (LLR)",
+        method: "Concentration & Migration Matrix Analysis, Provisioning Simulation & Risk Heatmap",
+        query: '("loan portfolio" OR "credit concentration" OR "non-performing loans") AND ("risk management")'
+      },
+      {
+        id: "app-11",
+        title: "11. Mô hình Hoạch định nguồn vốn & Cơ cấu nợ – vốn tối ưu doanh nghiệp",
+        topic: "Xây dựng khung đánh giá chi phí vốn bình quân (WACC) và cơ cấu nợ – vốn phù hợp cho doanh nghiệp",
+        rq: "Thay đổi tỷ lệ nợ vay ảnh hưởng ra sao đến WACC, đòn bẩy tài chính và khả năng thanh toán lãi vay (ICR)?",
+        context: "BCTC doanh nghiệp, chi phí nợ vay sau thuế, chi phí vốn chủ sở hữu và kế hoạch mở rộng hoạt động.",
+        variables: "Metrics: WACC, Debt-to-Equity, Interest Coverage Ratio (ICR), EPS / ROE under Leverage Scenarios",
+        method: "Cost of Capital & Target Capital Structure Modeling, Scenario & Sensitivity Analysis",
+        query: '("optimal capital structure" OR "WACC") AND ("leverage" OR "financial planning")'
+      },
+      {
+        id: "app-12",
+        title: "12. Dashboard Giám sát KPI Tài chính – Ngân hàng & Cảnh báo sớm",
+        topic: "Thiết kế hệ thống chỉ báo KPI tài chính/ngân hàng và ngưỡng cảnh báo sớm phục vụ điều hành",
+        rq: "Những chỉ báo dẫn dắt (leading indicators) nào cần theo dõi thường xuyên để phát hiện sớm suy giảm hiệu quả và rủi ro?",
+        context: "Chuỗi chỉ tiêu hiệu quả sinh lời, chất lượng tài sản, thanh khoản, chi phí và dòng tiền theo kỳ.",
+        variables: "Metrics: NIM, CIR, ROA/ROE, NPL/LLR, LDR, CCC/OCF, Threshold Alerts (Green/Amber/Red)",
+        method: "KPI Scorecard, Trend & Variance Analysis, Early Warning Threshold Rules",
+        query: '("financial KPI" OR "early warning indicators") AND ("banking" OR "corporate performance")'
       }
     ],
     qtkd30: [
@@ -964,9 +1124,9 @@
         : "Đang chọn: 30 Chủ đề QTKD & AI";
 
     els.libraryTitle.textContent = isResearch
-      ? "Thư viện 6 Hướng nghiên cứu chuyên ngành Tài chính – Ngân hàng (Chọn & Nạp 1 chạm)"
+      ? "Thư viện 16 Mô hình Nghiên cứu Tài chính – Ngân hàng (Chọn & Nạp 1 chạm)"
       : isApplied
-        ? "Thư viện 6 Hướng ứng dụng chuyên ngành Tài chính – Ngân hàng (Chọn & Nạp 1 chạm)"
+        ? "Thư viện 12 Mô hình Ứng dụng Tài chính – Ngân hàng (Chọn & Nạp 1 chạm)"
         : "Kho 30 Chủ đề NCKH Lĩnh vực Kinh tế, QTKD & AI (ThS. Đặng Văn Phong)";
 
     els.libraryDesc.textContent = isResearch
